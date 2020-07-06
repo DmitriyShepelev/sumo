@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="bin">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/bin/lisum-gui.jar!/" />
+      <root url="jar://$PROJECT_DIR$/bin/TraaS.jar!/" />
+      <root url="jar://$PROJECT_DIR$/bin/lisum-core.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

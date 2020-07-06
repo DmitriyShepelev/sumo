@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="target1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/tools/contributed/lisum-gui/target/lisum-gui-1.0-jar-with-dependencies.jar!/" />
+      <root url="jar://$PROJECT_DIR$/tools/contributed/lisum-gui/target/lisum-gui-1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

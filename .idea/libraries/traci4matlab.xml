@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="traci4matlab">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/tools/contributed/traci4matlab/traci4matlab.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

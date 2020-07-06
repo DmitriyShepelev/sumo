@@ -55,6 +55,8 @@ import de.tudresden.ws.container.SumoTLSController;
 import de.tudresden.ws.container.SumoStage;
 import de.tudresden.ws.container.SumoRoadPosition;
 
+import org.checkerframework.checker.signedness.qual.Unsigned;
+
 /**
  *
  * @author Mario Krumnow
@@ -282,7 +284,7 @@ public class CommandProcessor extends Query {
                 double dist = s.readDouble();
 
                 s.readUnsignedByte();
-                int k = s.readUnsignedByte();
+                /* @Unsigned */ int k = s.readUnsignedByte();
                 String state = Character.toString((char) k);
 
                 sn.add(tlsID, ix, dist, state);
@@ -324,7 +326,7 @@ public class CommandProcessor extends Query {
                 int offset = s.readByte();
 
                 s.readUnsignedByte();
-                int allowsContinuation = s.readUnsignedByte();
+                /* @Unsigned */ int allowsContinuation = s.readUnsignedByte();
 
                 s.readUnsignedByte();
                 int nextLanesNo = s.readInt();
@@ -342,7 +344,7 @@ public class CommandProcessor extends Query {
 
         } else if (type == Constants.TYPE_POLYGON) {
 
-            int laenge = s.readUnsignedByte();
+            /* @Unsigned */ int laenge = s.readUnsignedByte();
 
             SumoGeometry sg = new SumoGeometry();
             for (int i = 0; i < laenge; i++) {
@@ -355,10 +357,10 @@ public class CommandProcessor extends Query {
 
         } else if (type == Constants.TYPE_COLOR) {
 
-            int r = s.readUnsignedByte();
-            int g = s.readUnsignedByte();
-            int b = s.readUnsignedByte();
-            int a = s.readUnsignedByte();
+            /* @Unsigned */ int r = s.readUnsignedByte();
+            /* @Unsigned */ int g = s.readUnsignedByte();
+            /* @Unsigned */ int b = s.readUnsignedByte();
+            /* @Unsigned */ int a = s.readUnsignedByte();
 
             output = new SumoColor(r, g, b, a);
 
@@ -617,7 +619,7 @@ public class CommandProcessor extends Query {
                     double dist = resp.content().readDouble();
 
                     resp.content().readUnsignedByte();
-                    int k = resp.content().readUnsignedByte();
+                    /* @Unsigned */ int k = resp.content().readUnsignedByte();
                     String state = Character.toString((char) k);
 
                     sn.add(tlsID, ix, dist, state);
@@ -659,7 +661,7 @@ public class CommandProcessor extends Query {
                     int offset = resp.content().readByte();
 
                     resp.content().readUnsignedByte();
-                    int allowsContinuation = resp.content().readUnsignedByte();
+                    /* @Unsigned */ int allowsContinuation = resp.content().readUnsignedByte();
 
                     resp.content().readUnsignedByte();
                     int nextLanesNo = resp.content().readInt();
@@ -740,7 +742,7 @@ public class CommandProcessor extends Query {
 
         } else if (sc.output_type == Constants.TYPE_POLYGON) {
 
-            int laenge = resp.content().readUnsignedByte();
+            /* @Unsigned */ int laenge = resp.content().readUnsignedByte();
 
             SumoGeometry sg = new SumoGeometry();
             for (int i = 0; i < laenge; i++) {
@@ -753,10 +755,10 @@ public class CommandProcessor extends Query {
 
         } else if (sc.output_type == Constants.TYPE_COLOR) {
 
-            int r = resp.content().readUnsignedByte();
-            int g = resp.content().readUnsignedByte();
-            int b = resp.content().readUnsignedByte();
-            int a = resp.content().readUnsignedByte();
+            /* @Unsigned */ int r = resp.content().readUnsignedByte();
+            /* @Unsigned */ int g = resp.content().readUnsignedByte();
+            /* @Unsigned */ int b = resp.content().readUnsignedByte();
+            /* @Unsigned */ int a = resp.content().readUnsignedByte();
 
             output = new SumoColor(r, g, b, a);
 

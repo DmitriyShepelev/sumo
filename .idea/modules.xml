@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/tests/complex/traas/api/api.iml" filepath="$PROJECT_DIR$/tests/complex/traas/api/api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tools/contributed/lisum-core/lisum-core.iml" filepath="$PROJECT_DIR$/tools/contributed/lisum-core/lisum-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tools/contributed/lisum-gui/lisum-gui.iml" filepath="$PROJECT_DIR$/tools/contributed/lisum-gui/lisum-gui.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tests/complex/traas/multiclient/multiclient.iml" filepath="$PROJECT_DIR$/tests/complex/traas/multiclient/multiclient.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tests/complex/traas/simple/simple.iml" filepath="$PROJECT_DIR$/tests/complex/traas/simple/simple.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tests/complex/traas/subscription/subscription.iml" filepath="$PROJECT_DIR$/tests/complex/traas/subscription/subscription.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tools/contributed/traas/traas.iml" filepath="$PROJECT_DIR$/tools/contributed/traas/traas.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tools/contributed/traci4matlab/traci4matlab.iml" filepath="$PROJECT_DIR$/tools/contributed/traci4matlab/traci4matlab.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tests/complex/traas/webservice/webservice.iml" filepath="$PROJECT_DIR$/tests/complex/traas/webservice/webservice.iml" />
+    </modules>
+  </component>
+</project>

@@ -40,6 +40,7 @@ import it.polito.appeal.traci.protocol.RequestMessage;
 import it.polito.appeal.traci.protocol.ResponseContainer;
 import it.polito.appeal.traci.protocol.ResponseMessage;
 import it.polito.appeal.traci.protocol.StatusResponse;
+import org.checkerframework.checker.signedness.qual.Unsigned;
 
 public abstract class Query extends Observable {
 
@@ -164,7 +165,7 @@ public abstract class Query extends Observable {
                 s.readUnsignedByte();   //offset
             }
 
-            int response = s.readUnsignedByte();
+            /* @Unsigned */ int response = s.readUnsignedByte();
             ResponseType rt = ResponseType.getType(response);
 
             if (rt != ResponseType.UNKNOWN) {
@@ -174,8 +175,8 @@ public abstract class Query extends Observable {
                 //context
                 if (rt.isContext()) {
 
-                    int domain =  s.readUnsignedByte();
-                    int Variable_Count = s.readUnsignedByte();
+                    /* @Unsigned */ int domain =  s.readUnsignedByte();
+                    /* @Unsigned */ int Variable_Count = s.readUnsignedByte();
                     int Object_Count = s.readInt();
 
                     for (int oc = 0; oc < Object_Count; oc++) {
@@ -183,9 +184,9 @@ public abstract class Query extends Observable {
                         String name = s.readStringASCII();
                         for (int vc = 0; vc < Variable_Count; vc++) {
 
-                            int variable =  s.readUnsignedByte();
-                            int status =  s.readUnsignedByte(); //RTYPE_OK
-                            int return_type =  s.readUnsignedByte();
+                            /* @Unsigned */ int variable =  s.readUnsignedByte();
+                            /* @Unsigned */ int status =  s.readUnsignedByte(); //RTYPE_OK
+                            /* @Unsigned */ int return_type =  s.readUnsignedByte();
                             SumoObject o = CommandProcessor.read(return_type, s);
 
                             SubscriptionObject so = new SubscriptionObject(id, rt, domain, name, variable, status, return_type, o);
@@ -196,12 +197,12 @@ public abstract class Query extends Observable {
                 } else {
 
                     //variable
-                    int Variable_Count = s.readUnsignedByte();
+                    /* @Unsigned */ int Variable_Count = s.readUnsignedByte();
                     for (int vc = 0; vc < Variable_Count; vc++) {
 
-                        int variable =  s.readUnsignedByte();
-                        int status =  s.readUnsignedByte(); //RTYPE_OK
-                        int return_type =  s.readUnsignedByte();
+                        /* @Unsigned */ int variable =  s.readUnsignedByte();
+                        /* @Unsigned */ int status =  s.readUnsignedByte(); //RTYPE_OK
+                        /* @Unsigned */ int return_type =  s.readUnsignedByte();
                         SumoObject o = CommandProcessor.read(return_type, s);
 
                         SubscriptionObject so = new SubscriptionObject(id, rt, variable, status, return_type, o);
