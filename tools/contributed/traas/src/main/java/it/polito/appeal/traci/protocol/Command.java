@@ -57,7 +57,7 @@ public class Command {
      * @param rawStorage raw storage
      */
     public Command(Storage rawStorage) {
-        /* @Unsigned */ int contentLen = rawStorage.readUnsignedByte();
+        int contentLen = rawStorage.readUnsignedByte();
         if (contentLen == 0) {
             contentLen = rawStorage.readInt() - 6;
         } else {
