@@ -23,7 +23,7 @@
 package it.polito.appeal.traci.protocol;
 
 import de.uniluebeck.itm.tcpip.Storage;
-import org.checkerframework.checker.signedness.qual.Unsigned;
+
 
 /**
  * Represents a single TraCI command, with its identifier and content. It can

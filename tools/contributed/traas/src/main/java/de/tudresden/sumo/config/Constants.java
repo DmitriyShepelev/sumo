@@ -18,6 +18,9 @@
 // This script contains TraCI constant definitions from <SUMO_HOME>/src/libsumo/TraCIConstants.h.
 /****************************************************************************/
 package de.tudresden.sumo.config;
+
+import org.checkerframework.checker.signedness.qual.Unsigned;
+
 public class Constants {
     // ****************************************
     // VERSION
