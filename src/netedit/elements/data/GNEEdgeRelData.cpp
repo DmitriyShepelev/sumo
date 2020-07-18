@@ -35,7 +35,6 @@
 
 #include "GNEEdgeRelData.h"
 #include "GNEDataInterval.h"
-#include "GNEDataSet.h"
 
 
 // ===========================================================================
@@ -59,6 +58,21 @@ GNEEdgeRelData::~GNEEdgeRelData() {}
 
 const RGBColor& 
 GNEEdgeRelData::getColor() const {
+    if (myNet->getViewNet()->getEditModes().dataEditMode == DataEditMode::DATA_EDGERELDATA) {
+        // get selected data interval and filtered attribute
+        const GNEDataInterval *dataInterval = myNet->getViewNet()->getViewParent()->getEdgeRelDataFrame()->getIntervalSelector()->getDataInterval();
+        const std::string filteredAttribute = myNet->getViewNet()->getViewParent()->getEdgeRelDataFrame()->getAttributeSelector()->getFilteredAttribute();
+        // continue if there is a selected data interval and filtered attribute
+        if (dataInterval && (filteredAttribute.size() > 0)) {
+            // obtain minimum and maximum value
+            const double minValue = dataInterval->getSpecificAttributeColors().at(myTagProperty.getTag()).getMinValue(filteredAttribute);
+            const double maxValue = dataInterval->getSpecificAttributeColors().at(myTagProperty.getTag()).getMaxValue(filteredAttribute);
+            // get value
+            const double value = parse<double>(getParameter(filteredAttribute, "0"));
+            // return color
+            return GNEViewNetHelper::getRainbowScaledColor(minValue, maxValue, value);
+        }
+    }
     return RGBColor::GREEN;
 }
 
@@ -75,7 +89,7 @@ GNEEdgeRelData::isGenericDataVisible() const {
     DataEditMode dataMode = myNet->getViewNet()->getEditModes().dataEditMode;
     // check if we have to filter generic data
     if ((dataMode == DataEditMode::DATA_INSPECT) || (dataMode == DataEditMode::DATA_DELETE) || (dataMode == DataEditMode::DATA_SELECT)) {
-        return true;
+        return isVisibleInspectDeleteSelect();
     } else if (edgeRelDataFrame->shown()) {
         // check interval
         if ((edgeRelDataFrame->getIntervalSelector()->getDataInterval() != nullptr) &&
@@ -137,6 +151,10 @@ GNEEdgeRelData::drawPartialGL(const GUIVisualizationSettings& s, const GNELane* 
     glPopMatrix();
     // Pop name
     glPopName();
+    // draw filtered attribute
+    if (getParentEdges().front()->getLanes().front() == lane) {
+        drawFilteredAttribute(s, lane->getLaneShape(), myNet->getViewNet()->getViewParent()->getEdgeRelDataFrame()->getAttributeSelector()->getFilteredAttribute());
+    }
     // draw dotted contour
     if (s.drawDottedContour() || (myNet->getViewNet()->getInspectedAttributeCarrier() == this)) {
         if (getParentEdges().front() == lane->getParentEdge()) {
@@ -150,7 +168,8 @@ GNEEdgeRelData::drawPartialGL(const GUIVisualizationSettings& s, const GNELane* 
 
 void
 GNEEdgeRelData::drawPartialGL(const GUIVisualizationSettings& s, const GNELane* fromLane, const GNELane* toLane, const double offsetFront) const {
-    if ((fromLane->getParentEdge() == getParentEdges().front()) && (toLane->getParentEdge() == getParentEdges().back())) {
+    if ((fromLane->getParentEdge() == getParentEdges().front()) && (toLane->getParentEdge() == getParentEdges().back()) &&
+        (getParentEdges().front() != getParentEdges().back())) {
         // Start drawing adding an gl identificator
         glPushName(getGlID());
         // draw lanes
@@ -437,8 +456,8 @@ GNEEdgeRelData::setAttribute(SumoXMLAttr key, const std::string& value) {
             break;
         case GNE_ATTR_PARAMETERS:
             setParametersStr(value);
-            // mark interval parent as deprecated
-            myDataIntervalParent->markAttributeColorsDeprecated();
+            // update attribute colors
+            myDataIntervalParent->getDataSetParent()->updateAttributeColors();
             break;
         default:
             throw InvalidArgument(getTagStr() + " doesn't have an attribute of type '" + toString(key) + "'");

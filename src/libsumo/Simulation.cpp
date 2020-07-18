@@ -19,7 +19,9 @@
 // C++ TraCI client API implementation
 /****************************************************************************/
 #include <config.h>
-
+#ifdef HAVE_VERSION_H
+#include <version.h>
+#endif
 #include <utils/options/OptionsCont.h>
 #include <utils/common/MsgHandler.h>
 #include <utils/common/StdDefs.h>
@@ -125,6 +127,12 @@ Simulation::subscribe(const std::vector<int>& varIDs, double begin, double end) 
 const TraCIResults
 Simulation::getSubscriptionResults() {
     return mySubscriptionResults[""];
+}
+
+
+std::pair<int, std::string>
+Simulation::getVersion() {
+    return std::make_pair(libsumo::TRACI_VERSION, "SUMO " VERSION_STRING);
 }
 
 
@@ -437,7 +445,7 @@ Simulation::findRoute(const std::string& from, const std::string& to, const std:
     SUMOVehicleParameter* pars = new SUMOVehicleParameter();
     pars->id = "simulation.findRoute";
     try {
-        const MSRoute* const routeDummy = new MSRoute("", ConstMSEdgeVector({ fromEdge }), false, nullptr, std::vector<SUMOVehicleParameter::Stop>());
+        const MSRoute* const routeDummy = new MSRoute("", ConstMSEdgeVector({ fromEdge }), true, nullptr, std::vector<SUMOVehicleParameter::Stop>());
         vehicle = MSNet::getInstance()->getVehicleControl().buildVehicle(pars, routeDummy, type, false);
         std::string msg;
         if (!vehicle->hasValidRouteStart(msg)) {
@@ -552,7 +560,7 @@ Simulation::findIntermodalRoute(const std::string& from, const std::string& to,
             if (type->getVehicleClass() != SVC_IGNORING && (fromEdge->getPermissions() & type->getVehicleClass()) == 0) {
                 WRITE_WARNING("Ignoring vehicle type '" + type->getID() + "' when performing intermodal routing because it is not allowed on the start edge '" + from + "'.");
             } else {
-                const MSRoute* const routeDummy = new MSRoute(vehPar->id, ConstMSEdgeVector({ fromEdge }), false, nullptr, std::vector<SUMOVehicleParameter::Stop>());
+                const MSRoute* const routeDummy = new MSRoute(vehPar->id, ConstMSEdgeVector({ fromEdge }), true, nullptr, std::vector<SUMOVehicleParameter::Stop>());
                 vehicle = vehControl.buildVehicle(vehPar, routeDummy, type, !MSGlobals::gCheckRoutes);
                 // we need to fix the speed factor here for deterministic results
                 vehicle->setChosenSpeedFactor(type->getSpeedFactor().getParameter()[0]);

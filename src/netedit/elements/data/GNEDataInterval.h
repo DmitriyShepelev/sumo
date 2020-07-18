@@ -25,7 +25,7 @@
 // ===========================================================================
 #include <config.h>
 
-#include <netedit/elements/GNEAttributeCarrier.h>
+#include "GNEDataSet.h"
 
 // ===========================================================================
 // class declarations
@@ -58,17 +58,14 @@ public:
     /// @brief update generic data child IDs
     void updateGenericDataIDs();
 
-    /// @brief mark attribute colors deprecated
-    void markAttributeColorsDeprecated();
-
     /// @brief update attribute colors deprecated
     void updateAttributeColors();
 
-    /// @brief get minimum parameter value
-    double getMinimumParameterValue(const std::string& parameter) const;
+    /// @brief all attribute colors
+    const GNEDataSet::AttributeColors &getAllAttributeColors() const;
 
-    /// @brief get maximum parameter value
-    double getMaximumParameterValue(const std::string& parameter) const;
+    /// @brief specific attribute colors
+    const std::map<SumoXMLTag, GNEDataSet::AttributeColors> &getSpecificAttributeColors() const;
 
     /// @brief get ID
     const std::string& getID() const;
@@ -168,24 +165,11 @@ public:
     /// @}
 
 protected:
+    /// @brief all attribute colors
+    GNEDataSet::AttributeColors myAllAttributeColors;
 
-    /// @bief attribute colors
-    struct AttributeColors {
-        /// @brief default constructor
-        AttributeColors();
-        
-        /// @brief parameter constructor
-        AttributeColors(const double defaultValue);
-
-        /// @brief minimum value
-        double minValue;
-
-        /// @brief maximum value
-        double maxValue;
-    };
-
-    /// @brief attribute colors
-    std::map<std::string, AttributeColors> myAttributeColors;
+    /// @brief specific attribute colors
+    std::map<SumoXMLTag, GNEDataSet::AttributeColors> mySpecificAttributeColors;
 
     /// @brief GNEDataSet parent to which this data interval belongs.
     GNEDataSet* myDataSetParent;
@@ -198,9 +182,6 @@ protected:
 
     /// @brief vector with generic data children
     std::vector<GNEGenericData*> myGenericDataChildren;
-
-    /// @brief flag for update attributeColors
-    bool myAttributeColorsDeprecated;
 
 private:
     /// @brief method for setting the attribute and nothing else (used in GNEChange_Attribute)

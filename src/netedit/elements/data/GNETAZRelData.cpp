@@ -33,7 +33,6 @@
 
 #include "GNETAZRelData.h"
 #include "GNEDataInterval.h"
-#include "GNEDataSet.h"
 
 
 // ===========================================================================
@@ -73,7 +72,7 @@ GNETAZRelData::isGenericDataVisible() const {
     DataEditMode dataMode = myNet->getViewNet()->getEditModes().dataEditMode;
     // check if we have to filter generic data
     if ((dataMode == DataEditMode::DATA_INSPECT) || (dataMode == DataEditMode::DATA_DELETE) || (dataMode == DataEditMode::DATA_SELECT)) {
-        return true;
+        return isVisibleInspectDeleteSelect();
     } else if (TAZRelDataFrame->shown()) {
         // check interval
         if ((TAZRelDataFrame->getIntervalSelector()->getDataInterval() != nullptr) &&
@@ -283,8 +282,8 @@ GNETAZRelData::setAttribute(SumoXMLAttr key, const std::string& value) {
             break;
         case GNE_ATTR_PARAMETERS:
             setParametersStr(value);
-            // mark interval parent as deprecated
-            myDataIntervalParent->markAttributeColorsDeprecated();
+            // update attribute colors
+            myDataIntervalParent->getDataSetParent()->updateAttributeColors();
             break;
         default:
             throw InvalidArgument(getTagStr() + " doesn't have an attribute of type '" + toString(key) + "'");

@@ -39,10 +39,76 @@
 // member method definitions
 // ===========================================================================
 
+// ---------------------------------------------------------------------------
+// GNEDataSet::AttributeColors - methods
+// ---------------------------------------------------------------------------
+
+GNEDataSet::AttributeColors::AttributeColors() {
+}
+
+
+void
+GNEDataSet::AttributeColors::updateValues(const std::string &attribute, const double value) {
+    // check if exist
+    if (myMinMaxValue.count(attribute) == 0) {
+        myMinMaxValue[attribute] = std::make_pair(value, value);
+    } else {
+        // update min value
+        if (value < myMinMaxValue.at(attribute).first) {
+            myMinMaxValue.at(attribute).first = value;
+        }
+        // update max value
+        if (value > myMinMaxValue.at(attribute).second) {
+            myMinMaxValue.at(attribute).second = value;
+        }
+    }
+}
+
+
+void 
+GNEDataSet::AttributeColors::updateAllValues(const AttributeColors &attributeColors) {
+    // iterate over map
+    for (const auto &attributeColor : attributeColors.myMinMaxValue) {
+        if (myMinMaxValue.count(attributeColor.first) == 0) {
+            myMinMaxValue[attributeColor.first] = attributeColor.second;
+        } else {
+            // update min value
+            if (attributeColor.second.first < myMinMaxValue.at(attributeColor.first).first) {
+                myMinMaxValue.at(attributeColor.first).first = attributeColor.second.first;
+            }
+            // update max value
+            if (attributeColor.second.second > myMinMaxValue.at(attributeColor.first).second) {
+                myMinMaxValue.at(attributeColor.first).second = attributeColor.second.second;
+            }
+        }
+    }
+}
+
+
+double 
+GNEDataSet::AttributeColors::getMinValue(const std::string &attribute) const {
+    return myMinMaxValue.at(attribute).first;
+}
+
+
+double 
+GNEDataSet::AttributeColors::getMaxValue(const std::string &attribute) const {
+    return myMinMaxValue.at(attribute).second;
+}
+
+
+void 
+GNEDataSet::AttributeColors::clear() {
+    myMinMaxValue.clear();
+}
+
+// ---------------------------------------------------------------------------
+// GNEDataSet - methods
+// ---------------------------------------------------------------------------
+
 GNEDataSet::GNEDataSet(GNENet* net, const std::string dataSetID) :
     GNEAttributeCarrier(SUMO_TAG_DATASET, net),
-    myDataSetID(dataSetID),
-    myAttributeColorsDeprecated(true) {
+    myDataSetID(dataSetID) {
 }
 
 
@@ -73,19 +139,36 @@ GNEDataSet::setDataSetID(const std::string& newID) {
 
 
 void
-GNEDataSet::markAttributeColorsDeprecated() {
-    myAttributeColorsDeprecated = true;
+GNEDataSet::updateAttributeColors() {
+    // first update attribute colors in data interval childrens
+    for (const auto& interval : myDataIntervalChildren) {
+        interval.second->updateAttributeColors();
+    }
+    // continue with data sets containers
+    myAllAttributeColors.clear();
+    mySpecificAttributeColors.clear();
+    // iterate over all data interval children
+    for (const auto& interval : myDataIntervalChildren) {
+        myAllAttributeColors.updateAllValues(interval.second->getAllAttributeColors());
+    }
+    // iterate over specificdata interval children
+    for (const auto& interval : myDataIntervalChildren) {
+        for (const auto &specificAttributeColor : interval.second->getSpecificAttributeColors()) {
+            mySpecificAttributeColors[specificAttributeColor.first].updateAllValues(specificAttributeColor.second);
+        }
+    }
 }
 
 
-void
-GNEDataSet::updateAttributeColors() {
-    if (myAttributeColorsDeprecated) {
-        for (const auto& interval : myDataIntervalChildren) {
-            interval.second->updateAttributeColors();
-        }
-        myAttributeColorsDeprecated = false;
-    }
+const GNEDataSet::AttributeColors&
+GNEDataSet::getAllAttributeColors() const {
+    return myAllAttributeColors;
+}
+
+
+const std::map<SumoXMLTag, GNEDataSet::AttributeColors>&
+GNEDataSet::getSpecificAttributeColors() const {
+    return mySpecificAttributeColors;
 }
 
 

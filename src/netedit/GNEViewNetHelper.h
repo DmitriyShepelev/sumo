@@ -621,6 +621,7 @@ struct GNEViewNetHelper {
 
     /// @brief class used to group all variables related to interval bar
     class IntervalBar {
+
     public:
         /// @brief default constructor
         IntervalBar(GNEViewNet* viewNet);
@@ -693,10 +694,6 @@ struct GNEViewNetHelper {
         /// @}
 
     private:
-        /// @brief update combo box attributes
-        void updateComboBoxAttributes();
-
-    private:
         /// @brief pointer to net
         GNEViewNet* myViewNet;
 
@@ -740,6 +737,9 @@ struct GNEViewNetHelper {
         const FXString myAllAttributes;
 
     private:
+        /// @brief update combo box attributes
+        void updateComboBoxAttributes();
+
         /// @brief Invalidated copy constructor.
         IntervalBar(const IntervalBar&) = delete;
 
@@ -1156,4 +1156,14 @@ struct GNEViewNetHelper {
         /// @brief pointer to net
         GNEViewNet* myViewNet;
     };
+
+    /// @brief get scaled rainbow colors
+    static const std::vector<RGBColor>& getRainbowScaledColors();
+
+    /// @brief get rainbow scaled color
+    static const RGBColor& getRainbowScaledColor(const double min, const double max, const double value);
+
+    private:
+        /// @brief scale (rainbow) colors
+        static std::vector<RGBColor> myRainbowScaledColors;
 };
