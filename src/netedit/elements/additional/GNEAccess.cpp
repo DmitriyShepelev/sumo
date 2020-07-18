@@ -86,12 +86,8 @@ GNEAccess::updateGeometry() {
     }
     // update geometry
     myAdditionalGeometry.updateGeometry(getParentLanes().front(), fixedPositionOverLane * getParentLanes().front()->getLengthGeometryFactor());
-    // Set block icon position
-    myBlockIcon.position = myAdditionalGeometry.getShape().getLineCenter();
-    // Set offset of the block icon
-    myBlockIcon.offset = Position(-1, 0);
-    // Set block icon rotation, and using their rotation for logo
-    myBlockIcon.setRotation(getParentLanes().front());
+    // update block icon position
+    myBlockIcon.updatePositionAndRotation();
 }
 
 
@@ -157,34 +153,44 @@ GNEAccess::getParentName() const {
 
 void
 GNEAccess::drawGL(const GUIVisualizationSettings& s) const {
-    // Obtain exaggeration of the draw
-    const double exaggeration = s.addSize.getExaggeration(s, this);
+    // Obtain exaggeration
+    const double accessExaggeration = s.addSize.getExaggeration(s, this);
+    // get mouse position
+    const Position &mousePosition = myNet->getViewNet()->getPositionInformation();
+    // declare width
+    const double radius = 0.5;
     // first check if additional has to be drawn
-    if (s.drawAdditionals(exaggeration) && myNet->getViewNet()->getDataViewOptions().showAdditionals()) {
+    if (s.drawAdditionals(accessExaggeration) && myNet->getViewNet()->getDataViewOptions().showAdditionals()) {
         // Start drawing adding an gl identificator
         glPushName(getGlID());
         // push matrix
         glPushMatrix();
+        // translate to front
+        myNet->getViewNet()->drawTranslateFrontAttributeCarrier(this, GLO_ACCESS);
         // set color depending of selection
         if (drawUsingSelectColor()) {
             GLHelper::setColor(s.colorSettings.selectedAdditionalColor);
         } else {
             GLHelper::setColor(s.stoppingPlaceSettings.busStopColor);
         }
-        glTranslated(myAdditionalGeometry.getPosition().x(), myAdditionalGeometry.getPosition().y(), GLO_ACCESS);
+        // translate to geometry position
+        glTranslated(myAdditionalGeometry.getPosition().x(), myAdditionalGeometry.getPosition().y(), 0);
         // draw circle
         if (s.drawForRectangleSelection) {
-            GLHelper::drawFilledCircle(0.5 * exaggeration, 8);
+            GLHelper::drawFilledCircle(radius * accessExaggeration, 8);
         } else {
-            GLHelper::drawFilledCircle(0.5 * exaggeration, 16);
+            GLHelper::drawFilledCircle(radius * accessExaggeration, 16);
         }
         // pop matrix
         glPopMatrix();
         // pop gl identficador
         glPopName();
-        // check if dotted contour has to be drawn
-        if (s.drawDottedContour() || (myNet->getViewNet()->getInspectedAttributeCarrier() == this)) {
-            GNEGeometry::drawDottedContourCircle(s, myAdditionalGeometry.getPosition(), 0.5, exaggeration);
+        // check if dotted contours has to be drawn
+        if (s.drawDottedContour() || myNet->getViewNet()->getInspectedAttributeCarrier() == this) {
+            GNEGeometry::drawDottedContourCircle(true, s, myAdditionalGeometry.getPosition(), 0.5, accessExaggeration);
+        }
+        if (s.drawDottedContour() || myNet->getViewNet()->getFrontAttributeCarrier() == this) {
+            GNEGeometry::drawDottedContourCircle(false, s, myAdditionalGeometry.getPosition(), 0.5, accessExaggeration);
         }
     }
 }

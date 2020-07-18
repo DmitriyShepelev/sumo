@@ -23,6 +23,7 @@
 #include <netedit/elements/GNEHierarchicalParentElements.h>
 #include <netedit/elements/GNEHierarchicalChildElements.h>
 #include <netedit/GNEGeometry.h>
+#include <netedit/GNEMoveShape.h>
 #include <utils/gui/globjects/GUIGlObject.h>
 #include <utils/geom/PositionVector.h>
 
@@ -38,7 +39,7 @@ class GNEDemandElement;
 // class definitions
 // ===========================================================================
 
-class GNENetworkElement : public GUIGlObject, public GNEAttributeCarrier, public GNEHierarchicalParentElements, public GNEHierarchicalChildElements {
+class GNENetworkElement : public GUIGlObject, public GNEAttributeCarrier, public GNEHierarchicalParentElements, public GNEHierarchicalChildElements, protected GNEMoveShape {
 
 public:
     /**@brief Constructor.
@@ -89,6 +90,12 @@ public:
 
     /// @brief get GUIGlObject associated with this AttributeCarrier
     GUIGlObject* getGUIGlObject();
+
+    /// @brief set shape edited
+    void setShapeEdited(const bool value);
+
+    /// @brief check if shape is being edited
+    bool isShapeEdited() const;
 
     /// @name Functions related with geometry of element
     /// @{
@@ -184,6 +191,9 @@ protected:
 
     /// @brief position used during moving
     Position myMovingPosition;
+
+    /// @brief flag to check if element shape is being edited
+    bool myShapeEdited;
 
 private:
     /// @brief set attribute after validation

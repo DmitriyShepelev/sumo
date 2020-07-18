@@ -146,13 +146,13 @@ GNEGeometry::Geometry::updateGeometry(const GNELane* lane, const double posOverL
     // calculate position and rotation
     if (posOverLane < 0) {
         myPosition = lane->getLaneShape().positionAtOffset(0);
-        myRotation = (lane->getLaneShape().rotationDegreeAtOffset(0) * -1);
+        myRotation = lane->getLaneShape().rotationDegreeAtOffset(0);
     } else if (posOverLane > laneLength) {
         myPosition = lane->getLaneShape().positionAtOffset(laneLength);
-        myRotation = (lane->getLaneShape().rotationDegreeAtOffset(laneLength) * -1);
+        myRotation = lane->getLaneShape().rotationDegreeAtOffset(laneLength);
     } else {
         myPosition = lane->getLaneShape().positionAtOffset(posOverLane);
-        myRotation = (lane->getLaneShape().rotationDegreeAtOffset(posOverLane) * -1);
+        myRotation = lane->getLaneShape().rotationDegreeAtOffset(posOverLane);
     }
 }
 
@@ -183,6 +183,17 @@ GNEGeometry::Geometry::updateGeometry(const Geometry &geometry) {
     myShape = geometry.getShape();
     myShapeRotations = geometry.getShapeRotations();
     myShapeLengths = geometry.getShapeLengths();
+}
+
+
+void 
+GNEGeometry::Geometry::scaleGeometry(const double scale) {
+    // scale shape and lenghts
+    myShape.scaleRelative(scale);
+    // scale lenghts
+    for (auto &shapeLength : myShapeLengths) {
+        shapeLength *= scale;
+    }
 }
 
 
@@ -278,13 +289,25 @@ GNEGeometry::DottedGeometryColor::DottedGeometryColor(const GUIVisualizationSett
 
 
 const RGBColor&
-GNEGeometry::DottedGeometryColor::getColor() {
+GNEGeometry::DottedGeometryColor::getInspectedColor() {
     if (myColorFlag) {
         myColorFlag = false;
-        return mySettings.dottedContourSettings.firstColor;
+        return mySettings.dottedContourSettings.firstInspectedColor;
     } else {
         myColorFlag = true;
-        return mySettings.dottedContourSettings.secondColor;
+        return mySettings.dottedContourSettings.secondInspectedColor;
+    }
+}
+
+
+const RGBColor&
+GNEGeometry::DottedGeometryColor::getFrontColor() {
+    if (myColorFlag) {
+        myColorFlag = false;
+        return mySettings.dottedContourSettings.firstFrontColor;
+    } else {
+        myColorFlag = true;
+        return mySettings.dottedContourSettings.secondFrontColor;
     }
 }
 
@@ -350,18 +373,28 @@ GNEGeometry::DottedGeometry::DottedGeometry(const GUIVisualizationSettings& s,
     const DottedGeometry &topDottedGeometry, const bool drawFirstExtrem, 
     const DottedGeometry &botDottedGeometry, const bool drawLastExtrem) :
     myWidth(s.dottedContourSettings.segmentWidth) {
-    // add extremes
-    if (drawFirstExtrem) {
-        myDottedGeometrySegments.push_back(Segment({
-            topDottedGeometry.myDottedGeometrySegments.front().shape.front(), 
-            botDottedGeometry.myDottedGeometrySegments.front().shape.front()}));
-    }
-    if (drawLastExtrem) {
-        myDottedGeometrySegments.push_back(Segment({
-            topDottedGeometry.myDottedGeometrySegments.back().shape.back(), 
-            botDottedGeometry.myDottedGeometrySegments.back().shape.back()}));
-        // invert offset of second dotted geometry
-        myDottedGeometrySegments.back().offset *= -1;
+    // check size of both geometries
+    if ((topDottedGeometry.myDottedGeometrySegments.size() > 0) &&
+        (botDottedGeometry.myDottedGeometrySegments.size() > 0)) {
+        // add extremes
+        if (drawFirstExtrem &&
+            (topDottedGeometry.myDottedGeometrySegments.front().shape.size() > 0) &&
+            (botDottedGeometry.myDottedGeometrySegments.front().shape.size() > 0)) {
+            // add first extreme
+            myDottedGeometrySegments.push_back(Segment({
+                topDottedGeometry.myDottedGeometrySegments.front().shape.front(), 
+                botDottedGeometry.myDottedGeometrySegments.front().shape.front()}));
+        }
+        if (drawLastExtrem &&
+            (topDottedGeometry.myDottedGeometrySegments.back().shape.size() > 0) &&
+            (botDottedGeometry.myDottedGeometrySegments.back().shape.size() > 0)) {
+            // add last extreme
+            myDottedGeometrySegments.push_back(Segment({
+                topDottedGeometry.myDottedGeometrySegments.back().shape.back(), 
+                botDottedGeometry.myDottedGeometrySegments.back().shape.back()}));
+            // invert offset of second dotted geometry
+            myDottedGeometrySegments.back().offset *= -1;
+        }
     }
     // resample
     for (auto &segment : myDottedGeometrySegments) {
@@ -417,13 +450,31 @@ GNEGeometry::DottedGeometry::updateDottedGeometry(const GUIVisualizationSettings
 
 
 void
-GNEGeometry::DottedGeometry::drawDottedGeometry(DottedGeometryColor &dottedGeometryColor) const {
+GNEGeometry::DottedGeometry::drawInspectedDottedGeometry(DottedGeometryColor &dottedGeometryColor) const {
     // iterate over all segments
     for (auto &segment : myDottedGeometrySegments) {
         // iterate over shape
         for (int i = 0; i < ((int)segment.shape.size() - 1); i++) {
             // set color
-            GLHelper::setColor(dottedGeometryColor.getColor());
+            GLHelper::setColor(dottedGeometryColor.getInspectedColor());
+            // draw box line
+            GLHelper::drawBoxLine(segment.shape[i], 
+                segment.rotations.at(i),
+                segment.lengths.at(i), 
+                myWidth, myWidth * segment.offset);
+        }
+    }
+}
+
+
+void
+GNEGeometry::DottedGeometry::drawFrontDottedGeometry(DottedGeometryColor &dottedGeometryColor) const {
+    // iterate over all segments
+    for (auto &segment : myDottedGeometrySegments) {
+        // iterate over shape
+        for (int i = 0; i < ((int)segment.shape.size() - 1); i++) {
+            // set color
+            GLHelper::setColor(dottedGeometryColor.getFrontColor());
             // draw box line
             GLHelper::drawBoxLine(segment.shape[i], 
                 segment.rotations.at(i),
@@ -1122,6 +1173,105 @@ GNEGeometry::drawGeometry(const GNEViewNet* viewNet, const Geometry& geometry, c
 }
 
 
+void 
+GNEGeometry::drawGeometryPoints(const GUIVisualizationSettings& s, const GNEViewNet* viewNet, const PositionVector& shape, 
+    const RGBColor &geometryPointColor, const RGBColor &textColor, const double radius, const double exaggeration) {
+    // get mouse position
+    const Position mousePosition = viewNet->getPositionInformation();
+    // get exaggeratedRadio
+    const double exaggeratedRadio = (radius * exaggeration);
+    // get radius squared
+    const double exaggeratedRadioSquared = (exaggeratedRadio * exaggeratedRadio);
+    // iterate over shape
+    for (const auto& vertex : shape) {
+        // if drawForPositionSelection is enabled, check distance between mouse and vertex 
+        if (!s.drawForPositionSelection || (mousePosition.distanceSquaredTo2D(vertex) <= exaggeratedRadioSquared)) {
+            // push geometry point matrix
+            glPushMatrix();
+            // move to vertex
+            glTranslated(vertex.x(), vertex.y(), 0.2);
+            // set color
+            GLHelper::setColor(geometryPointColor);
+            // draw circle
+            GLHelper::drawFilledCircle(exaggeratedRadio, s.getCircleResolution());
+            // pop geometry point matrix
+            glPopMatrix();
+            // draw elevation or special symbols (Start, End and Block)
+            if (!s.drawForRectangleSelection && !s.drawForPositionSelection) {
+                // get draw detail
+                const bool drawDetail = s.drawDetail(s.detailSettings.geometryPointsText, exaggeration);
+                // draw text
+                if (viewNet->getNetworkViewOptions().editingElevation()) {
+                    // Push Z matrix
+                    glPushMatrix();
+                    // draw Z (elevation)
+                    GLHelper::drawText(toString(vertex.z()), vertex, 0.3, 0.7, textColor);
+                    // pop Z matrix
+                    glPopMatrix();
+                } else if ((vertex == shape.front()) && drawDetail) {
+                    // push "S" matrix
+                    glPushMatrix();
+                    // draw a "s" over first point
+                    GLHelper::drawText("S", vertex, 0.3, 2 * exaggeratedRadio, textColor);
+                    // pop "S" matrix
+                    glPopMatrix();
+                } else if ((vertex == shape.back()) && (shape.isClosed() == false) && drawDetail) {
+                    // push "E" matrix
+                    glPushMatrix();
+                    // draw a "e" over last point if polygon isn't closed
+                    GLHelper::drawText("E", vertex, 0.3, 2 * exaggeratedRadio, textColor);
+                    // pop "E" matrix
+                    glPopMatrix();
+                }
+            }
+        }
+    }
+}
+
+
+void 
+GNEGeometry::drawMovingHint(const GUIVisualizationSettings& s, const GNEViewNet* viewNet, const PositionVector& shape, 
+    const RGBColor &hintColor, const double radius, const double exaggeration) {
+    // first NetworkEditMode  
+    if (viewNet->getEditModes().networkEditMode == NetworkEditMode::NETWORK_MOVE) {
+        // get mouse position
+        const Position mousePosition = viewNet->getPositionInformation();
+        // get exaggeratedRadio
+        const double exaggeratedRadio = (radius * exaggeration);
+        // obtain distance to shape
+        const double distanceToShape = shape.distance2D(mousePosition);
+        // obtain squared radius
+        const double squaredRadius = (radius * radius * exaggeration);
+        // declare index
+        int index = -1;
+        // iterate over shape
+        for (int i = 0; i < (int)shape.size(); i++) {
+            // check distance
+            if (shape[i].distanceSquaredTo2D(mousePosition) <= squaredRadius) {
+                index = i;
+            }
+        }
+        // continue depending of distance to shape
+        if ((distanceToShape < exaggeratedRadio) && (index == -1)) {
+            // obtain position over lane
+            const Position positionOverLane = shape.positionAtOffset2D(shape.nearest_offset_to_point2D(mousePosition));
+            // calculate hintPos
+            const Position hintPos = shape.size() > 1 ? positionOverLane : shape[0];
+            // push hintPos matrix
+            glPushMatrix();
+            // translate to hintPos
+            glTranslated(hintPos.x(), hintPos.y(), 0.2);
+            // set color
+            GLHelper::setColor(hintColor);
+            // draw filled circle
+            GLHelper:: drawFilledCircle(exaggeratedRadio, s.getCircleResolution());
+            // pop hintPos matrix
+            glPopMatrix();
+        }
+    }
+}
+
+
 void
 GNEGeometry::drawLaneGeometry(const GNEViewNet* viewNet, const PositionVector& shape, const std::vector<double>& rotations,
                               const std::vector<double>& lengths, const std::vector<RGBColor>& colors, double width) {
@@ -1179,7 +1329,7 @@ GNEGeometry::drawSegmentGeometry(const GNEViewNet* viewNet, const SegmentGeometr
 
 
 void 
-GNEGeometry::drawDottedContourLane(const GUIVisualizationSettings& s, const DottedGeometry &dottedGeometry, const double width, const bool drawFirstExtrem, const bool drawLastExtrem) {
+GNEGeometry::drawDottedContourLane(const bool inspect, const GUIVisualizationSettings& s, const DottedGeometry &dottedGeometry, const double width, const bool drawFirstExtrem, const bool drawLastExtrem) {
     // declare DottedGeometryColor
     DottedGeometryColor dottedGeometryColor(s);
     // make a copy of dotted geometry
@@ -1194,28 +1344,44 @@ GNEGeometry::drawDottedContourLane(const GUIVisualizationSettings& s, const Dott
     DottedGeometry extremes(s, topDottedGeometry, drawFirstExtrem, botDottedGeometry, drawLastExtrem);
     // Push draw matrix
     glPushMatrix();
-    // translate to front
-    glTranslated(0, 0, GLO_DOTTEDCONTOUR);
-    // draw top dotted geometry
-    topDottedGeometry.drawDottedGeometry(dottedGeometryColor);
-    // reset color
-    dottedGeometryColor.reset();
-    // draw top dotted geometry
-    botDottedGeometry.drawDottedGeometry(dottedGeometryColor);
-    // change color
-    dottedGeometryColor.changeColor();
-    // draw extrem dotted geometry
-    extremes.drawDottedGeometry(dottedGeometryColor);
+    // draw inspect or front dotted contour
+    if (inspect) {
+        // translate to front
+        glTranslated(0, 0, GLO_DOTTEDCONTOUR_INSPECTED);
+        // draw top dotted geometry
+        topDottedGeometry.drawInspectedDottedGeometry(dottedGeometryColor);
+        // reset color
+        dottedGeometryColor.reset();
+        // draw top dotted geometry
+        botDottedGeometry.drawInspectedDottedGeometry(dottedGeometryColor);
+        // change color
+        dottedGeometryColor.changeColor();
+        // draw extrem dotted geometry
+        extremes.drawInspectedDottedGeometry(dottedGeometryColor);
+    } else {
+        // translate to front
+        glTranslated(0, 0, GLO_DOTTEDCONTOUR_FRONT);
+        // draw top dotted geometry
+        topDottedGeometry.drawFrontDottedGeometry(dottedGeometryColor);
+        // reset color
+        dottedGeometryColor.reset();
+        // draw top dotted geometry
+        botDottedGeometry.drawFrontDottedGeometry(dottedGeometryColor);
+        // change color
+        dottedGeometryColor.changeColor();
+        // draw extrem dotted geometry
+        extremes.drawFrontDottedGeometry(dottedGeometryColor);
+    }
     // pop matrix
     glPopMatrix();
 }
 
 
 void 
-GNEGeometry::drawDottedContourEdge(const GUIVisualizationSettings& s, const GNEEdge* edge, const bool drawFrontExtreme, const bool drawBackExtreme) {
+GNEGeometry::drawDottedContourEdge(const bool inspect, const GUIVisualizationSettings& s, const GNEEdge* edge, const bool drawFrontExtreme, const bool drawBackExtreme) {
     if (edge->getLanes().size() == 1) {
         GNELane::LaneDrawingConstants laneDrawingConstants(s, edge->getLanes().front());
-        GNEGeometry::drawDottedContourLane(s, edge->getLanes().front()->getDottedLaneGeometry(), laneDrawingConstants.halfWidth, drawFrontExtreme, drawBackExtreme);
+        GNEGeometry::drawDottedContourLane(inspect, s, edge->getLanes().front()->getDottedLaneGeometry(), laneDrawingConstants.halfWidth, drawFrontExtreme, drawBackExtreme);
     } else {
         // obtain a copy of both geometries
         GNEGeometry::DottedGeometry dottedGeometryTop = edge->getLanes().front()->getDottedLaneGeometry();
@@ -1234,18 +1400,34 @@ GNEGeometry::drawDottedContourEdge(const GUIVisualizationSettings& s, const GNEE
         DottedGeometry extremes(s, dottedGeometryTop, drawFrontExtreme, dottedGeometryBot, drawBackExtreme);
         // Push draw matrix
         glPushMatrix();
-        // translate to front
-        glTranslated(0, 0, GLO_DOTTEDCONTOUR);
-        // draw top dotted geometry
-        dottedGeometryTop.drawDottedGeometry(dottedGeometryColor);
-        // reset color
-        dottedGeometryColor.reset();
-        // draw top dotted geometry
-        dottedGeometryBot.drawDottedGeometry(dottedGeometryColor);
-        // change color
-        dottedGeometryColor.changeColor();
-        // draw extrem dotted geometry
-        extremes.drawDottedGeometry(dottedGeometryColor);
+        // draw inspect or front dotted contour
+        if (inspect) {
+            // translate to front
+            glTranslated(0, 0, GLO_DOTTEDCONTOUR_INSPECTED);
+            // draw top dotted geometry
+            dottedGeometryTop.drawInspectedDottedGeometry(dottedGeometryColor);
+            // reset color
+            dottedGeometryColor.reset();
+            // draw top dotted geometry
+            dottedGeometryBot.drawInspectedDottedGeometry(dottedGeometryColor);
+            // change color
+            dottedGeometryColor.changeColor();
+            // draw extrem dotted geometry
+            extremes.drawInspectedDottedGeometry(dottedGeometryColor);
+        } else {
+            // translate to front
+            glTranslated(0, 0, GLO_DOTTEDCONTOUR_FRONT);
+            // draw top dotted geometry
+            dottedGeometryTop.drawFrontDottedGeometry(dottedGeometryColor);
+            // reset color
+            dottedGeometryColor.reset();
+            // draw top dotted geometry
+            dottedGeometryBot.drawFrontDottedGeometry(dottedGeometryColor);
+            // change color
+            dottedGeometryColor.changeColor();
+            // draw extrem dotted geometry
+            extremes.drawFrontDottedGeometry(dottedGeometryColor);
+        }
         // pop matrix
         glPopMatrix();
     }
@@ -1253,7 +1435,7 @@ GNEGeometry::drawDottedContourEdge(const GUIVisualizationSettings& s, const GNEE
 
 
 void
-GNEGeometry::drawDottedContourClosedShape(const GUIVisualizationSettings& s, const PositionVector &shape, const double exaggeration) {
+GNEGeometry::drawDottedContourClosedShape(const bool inspect, const GUIVisualizationSettings& s, const PositionVector &shape, const double exaggeration) {
     if (exaggeration > 0) {
         // declare DottedGeometryColor
         DottedGeometryColor dottedGeometryColor(s);
@@ -1265,10 +1447,18 @@ GNEGeometry::drawDottedContourClosedShape(const GUIVisualizationSettings& s, con
         GNEGeometry::DottedGeometry dottedGeometry(s, scaledShape, true);
         // Push draw matrix
         glPushMatrix();
-        // translate to front
-        glTranslated(0, 0, GLO_DOTTEDCONTOUR);
-        // draw dotted geometry
-        dottedGeometry.drawDottedGeometry(dottedGeometryColor);
+        // draw inspect or front dotted contour
+        if (inspect) {
+            // translate to front
+            glTranslated(0, 0, GLO_DOTTEDCONTOUR_INSPECTED);
+            // draw dotted geometry
+            dottedGeometry.drawInspectedDottedGeometry(dottedGeometryColor);
+        } else {
+            // translate to front
+            glTranslated(0, 0, GLO_DOTTEDCONTOUR_FRONT);
+            // draw dotted geometry
+            dottedGeometry.drawFrontDottedGeometry(dottedGeometryColor);
+        }
         // pop matrix
         glPopMatrix();
     }
@@ -1276,26 +1466,27 @@ GNEGeometry::drawDottedContourClosedShape(const GUIVisualizationSettings& s, con
 
 
 void 
-GNEGeometry::drawDottedContourShape(const GUIVisualizationSettings& s, const PositionVector& shape, const double width, const double exaggeration) {
+GNEGeometry::drawDottedContourShape(const bool inspect, const GUIVisualizationSettings& s, const PositionVector& shape, const double width, const double exaggeration) {
     // calculate dotted geometry
     GNEGeometry::DottedGeometry dottedGeometry(s, shape, false);
     // use drawDottedContourLane to draw it
-    drawDottedContourLane(s, dottedGeometry, width * exaggeration, true, true);
+    drawDottedContourLane(inspect, s, dottedGeometry, width * exaggeration, true, true);
 }
 
 
 void 
-GNEGeometry::drawDottedContourCircle(const GUIVisualizationSettings& s, const Position& pos, const double radius, const double exaggeration) {
-    if (radius * exaggeration < 2) {
-        drawDottedContourClosedShape(s, getVertexCircleAroundPosition(pos, radius * exaggeration, 8), 1);
+GNEGeometry::drawDottedContourCircle(const bool inspect, const GUIVisualizationSettings& s, const Position& pos, const double radius, const double exaggeration) {
+    // continue depending of exaggeratedRadio
+    if ((radius * exaggeration) < 2) {
+        drawDottedContourClosedShape(inspect, s, getVertexCircleAroundPosition(pos, radius, 8), exaggeration);
     } else {
-        drawDottedContourClosedShape(s, getVertexCircleAroundPosition(pos, radius * exaggeration, 16), 1);
+        drawDottedContourClosedShape(inspect, s, getVertexCircleAroundPosition(pos, radius, 16), exaggeration);
     }
 }
 
 
 void 
-GNEGeometry::drawDottedSquaredShape(const GUIVisualizationSettings& s, const Position &pos, const double width, const double height, const double rot, const double exaggeration) {
+GNEGeometry::drawDottedSquaredShape(const bool inspect, const GUIVisualizationSettings& s, const Position &pos, const double width, const double height, const double rot, const double exaggeration) {
     // create shape
     PositionVector shape;
     // make rectangle
@@ -1304,11 +1495,11 @@ GNEGeometry::drawDottedSquaredShape(const GUIVisualizationSettings& s, const Pos
     shape.push_back(Position(0 - width, 0 - height));
     shape.push_back(Position(0 - width, 0 + height));
     // rotate shape
-    shape.rotate2D(DEG2RAD(rot));
+    shape.rotate2D(DEG2RAD((rot * -1) + 90));
     // move to position
     shape.add(pos);
     // draw using drawDottedContourClosedShape
-    drawDottedContourClosedShape(s, shape, exaggeration);
+    drawDottedContourClosedShape(inspect, s, shape, exaggeration);
 }
 
 

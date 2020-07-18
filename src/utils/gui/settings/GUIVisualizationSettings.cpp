@@ -81,6 +81,19 @@ const RGBColor GUIVisualizationCandidateColorSettings::special(255, 0, 255, 255)
 const RGBColor GUIVisualizationCandidateColorSettings::conflict(255, 255, 0, 255);  // Yellow
 
 // -------------------------------------------------------------------------
+// Netedit size values
+// -------------------------------------------------------------------------
+
+const double GUIVisualizationNeteditSizeSettings::junctionBubbleRadius(4);
+const double GUIVisualizationNeteditSizeSettings::junctionGeometryPointRadius(1);
+const double GUIVisualizationNeteditSizeSettings::edgeGeometryPointRadius(1.2);
+const double GUIVisualizationNeteditSizeSettings::connectionGeometryPointRadius(0.8);
+const double GUIVisualizationNeteditSizeSettings::crossingGeometryPointRadius(1);
+const double GUIVisualizationNeteditSizeSettings::polygonGeometryPointRadius(1.2);
+const double GUIVisualizationNeteditSizeSettings::polygonContourWidth(0.3);
+const double GUIVisualizationNeteditSizeSettings::polylineWidth(1);
+
+// -------------------------------------------------------------------------
 // additional values
 // -------------------------------------------------------------------------
 
@@ -146,8 +159,10 @@ const RGBColor GUIVisualizationStoppingPlaceSettings::parkingSpaceColor(255, 200
 
 const double GUIVisualizationDottedContourSettings::segmentWidth(0.2);
 const double GUIVisualizationDottedContourSettings::segmentLength(2);
-const RGBColor GUIVisualizationDottedContourSettings::firstColor(235, 235, 235);
-const RGBColor GUIVisualizationDottedContourSettings::secondColor(20, 20, 20);
+const RGBColor GUIVisualizationDottedContourSettings::firstInspectedColor(235, 235, 235);
+const RGBColor GUIVisualizationDottedContourSettings::secondInspectedColor(20, 20, 20);
+const RGBColor GUIVisualizationDottedContourSettings::firstFrontColor(0, 0, 235);
+const RGBColor GUIVisualizationDottedContourSettings::secondFrontColor(0, 255, 0);
 
 // -------------------------------------------------------------------------
 // widths of certain NETEDIT objects
@@ -168,7 +183,7 @@ const double GUIVisualizationDetailSettings::laneTextures(20); // originally 10
 const double GUIVisualizationDetailSettings::lockIcon(30);
 const double GUIVisualizationDetailSettings::additionalTextures(20); // originally 10
 const double GUIVisualizationDetailSettings::geometryPointsDetails(10);
-const double GUIVisualizationDetailSettings::geometryPointsText(30);
+const double GUIVisualizationDetailSettings::geometryPointsText(20);
 const double GUIVisualizationDetailSettings::stoppingPlaceDetails(10);
 const double GUIVisualizationDetailSettings::stoppingPlaceText(10);
 const double GUIVisualizationDetailSettings::detectorDetails(10);
@@ -1907,6 +1922,12 @@ GUIVisualizationSettings::drawDottedContour() const {
     } else {
         return forceDrawDottedContour;
     }
+}
+
+
+bool 
+GUIVisualizationSettings::drawMovingGeometryPoint(const double exaggeration, const double radius) const {
+    return (scale * radius * exaggeration > 10);
 }
 
 /****************************************************************************/

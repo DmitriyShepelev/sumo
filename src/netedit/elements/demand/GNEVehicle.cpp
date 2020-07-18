@@ -675,8 +675,10 @@ GNEVehicle::drawGL(const GUIVisualizationSettings& s) const {
             if (s.drawForRectangleSelection && (myNet->getViewNet()->getPositionInformation().distanceSquaredTo2D(vehiclePosition) >= (vehicleSizeSquared + 2))) {
                 // push draw matrix
                 glPushMatrix();
+                // Start with the drawing of the area traslating matrix to origin
+                myNet->getViewNet()->drawTranslateFrontAttributeCarrier(this, getType());
                 // translate to drawing position
-                glTranslated(vehiclePosition.x(), vehiclePosition.y(), GLO_ROUTE + getType() + 0.1);
+                glTranslated(vehiclePosition.x(), vehiclePosition.y(), 0);
                 glRotated(vehicleRotation, 0, 0, 1);
                 // extra translation needed to draw vehicle over edge (to avoid selecting problems)
                 glTranslated(0, (-1) * length, 0);
@@ -687,8 +689,10 @@ GNEVehicle::drawGL(const GUIVisualizationSettings& s) const {
                 SUMOVehicleShape shape = getVehicleShapeID(getParentDemandElements().at(0)->getAttribute(SUMO_ATTR_GUISHAPE));
                 // push draw matrix
                 glPushMatrix();
+                // Start with the drawing of the area traslating matrix to origin
+                myNet->getViewNet()->drawTranslateFrontAttributeCarrier(this, getType());
                 // translate to drawing position
-                glTranslated(vehiclePosition.x(), vehiclePosition.y(), GLO_ROUTE + getType() + 0.1);
+                glTranslated(vehiclePosition.x(), vehiclePosition.y(), 0);
                 glRotated(vehicleRotation, 0, 0, 1);
                 // extra translation needed to draw vehicle over edge (to avoid selecting problems)
                 glTranslated(0, (-1) * length, 0);
@@ -823,13 +827,13 @@ GNEVehicle::drawPartialGL(const GUIVisualizationSettings& s, const GNELane* lane
                     // draw partial segment
                     if (firstLane == lane) {
                         // draw front dotted contour
-                        GNEGeometry::drawDottedContourLane(s, GNEGeometry::DottedGeometry(s, segment.getShape(), false), width, true, false);
+                        GNEGeometry::drawDottedContourLane(true, s, GNEGeometry::DottedGeometry(s, segment.getShape(), false), width, true, false);
                     } else if (lastLane == lane) {
                         // draw back dotted contour
-                        GNEGeometry::drawDottedContourLane(s, GNEGeometry::DottedGeometry(s, segment.getShape(), false), width, false, true);
+                        GNEGeometry::drawDottedContourLane(true, s, GNEGeometry::DottedGeometry(s, segment.getShape(), false), width, false, true);
                     } else {
                         // draw dotted contour
-                        GNEGeometry::drawDottedContourLane(s, lane->getDottedLaneGeometry(), width, false, false);
+                        GNEGeometry::drawDottedContourLane(true, s, lane->getDottedLaneGeometry(), width, false, false);
                     }
                 }
             }
@@ -868,7 +872,7 @@ GNEVehicle::drawPartialGL(const GUIVisualizationSettings& s, const GNELane* from
         if (s.drawDottedContour() || (myNet->getViewNet()->getInspectedAttributeCarrier() == this)) {
             // draw lane2lane dotted geometry
             if (fromLane->getLane2laneConnections().exist(toLane)) {
-                GNEGeometry::drawDottedContourLane(s, fromLane->getLane2laneConnections().getLane2laneDottedGeometry(toLane), width, false, false);
+                GNEGeometry::drawDottedContourLane(true, s, fromLane->getLane2laneConnections().getLane2laneDottedGeometry(toLane), width, false, false);
             }
         }
         // Pop name
@@ -1728,8 +1732,6 @@ void
 GNEVehicle::drawStackLabel(const GUIVisualizationSettings& /*s*/, const Position& vehiclePosition, const double vehicleRotation, const double width, const double length) const {
     // declare contour width
     const double contourWidth = 0.05;
-    // check if we have to mirror text
-    const bool mirrorText = (vehicleRotation < 0);
     // Push matrix
     glPushMatrix();
     // Traslate to vehicle top
@@ -1754,8 +1756,6 @@ void
 GNEVehicle::drawFlowLabel(const GUIVisualizationSettings& /*s*/, const Position& vehiclePosition, const double vehicleRotation, const double width, const double length) const {
     // declare contour width
     const double contourWidth = 0.05;
-    // check if we have to mirror text
-    const bool mirrorText = (vehicleRotation < 0);
     // Push matrix
     glPushMatrix();
     // Traslate to vehicle bot

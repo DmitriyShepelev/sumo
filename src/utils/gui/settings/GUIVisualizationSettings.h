@@ -213,6 +213,33 @@ struct GUIVisualizationCandidateColorSettings {
     static const RGBColor conflict;
 };
 
+/// @brief struct for connection settings
+struct GUIVisualizationNeteditSizeSettings {
+
+    /// @brief junction buuble radius
+    static const double junctionBubbleRadius;
+
+    /// @brief moving junction geometry point radius
+    static const double junctionGeometryPointRadius;
+
+    /// @brief moving edge geometry point radius
+    static const double edgeGeometryPointRadius;
+
+    /// @brief moving connection geometry point radius
+    static const double connectionGeometryPointRadius;
+
+    /// @brief moving crossing geometry point radius
+    static const double crossingGeometryPointRadius;
+
+    /// @brief moving geometry point radius
+    static const double polygonGeometryPointRadius;
+
+    /// @brief polygon contour width
+    static const double polygonContourWidth;
+
+    /// @brief poly line width
+    static const double polylineWidth;
+};
 
 /// @brief struct for connection settings
 struct GUIVisualizationConnectionSettings {
@@ -363,11 +390,17 @@ struct GUIVisualizationDottedContourSettings {
     /// @brief length of dotted contour segments
     static const double segmentLength;
 
-    /// @brief first color of dotted contour
-    static const RGBColor firstColor;
+    /// @brief first color of dotted inspected contour
+    static const RGBColor firstInspectedColor;
 
-    /// @brief second color of dotted contour
-    static const RGBColor secondColor;
+    /// @brief second color of dotted inspectedcontour
+    static const RGBColor secondInspectedColor;
+
+    /// @brief first color of dotted front contour
+    static const RGBColor firstFrontColor;
+
+    /// @brief second color of dotted front contour
+    static const RGBColor secondFrontColor;
 };
 
 
@@ -518,6 +551,9 @@ public:
 
     /// @brief check if dotted contour can be drawn
     bool drawDottedContour() const;
+
+    /// @brief check if moving geometry point can be draw
+    bool drawMovingGeometryPoint(const double exaggeration, const double radius) const;
 
     /// @brief The name of this setting
     std::string name;
@@ -814,6 +850,9 @@ public:
 
     /// @brief candidate color settings
     GUIVisualizationCandidateColorSettings candidateColorSettings;
+
+    /// @brief netedit size settings
+    GUIVisualizationNeteditSizeSettings neteditSizeSettings;
 
     /// @brief connection settings
     GUIVisualizationConnectionSettings connectionSettings;

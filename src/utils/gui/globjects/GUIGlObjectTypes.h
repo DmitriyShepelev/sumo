@@ -43,18 +43,18 @@ enum GUIGlObjectType {
 
     /// @brief reserved GLO type to pack all network elements
     GLO_NETWORKELEMENT = 1,
-    /// @brief an edge
-    GLO_EDGE = 2,
     /// @brief a lane
-    GLO_LANE = 3,
+    GLO_LANE = 2,
+    /// @brief an edge
+    GLO_EDGE = 3,
     /// @brief a junction
     GLO_JUNCTION = 4,
-    /// @brief a tl-logic
-    GLO_CROSSING = 5,
     /// @brief a connection
-    GLO_CONNECTION = 6,
+    GLO_CONNECTION = 5,
     /// @brief a tl-logic
-    GLO_TLLOGIC = 8,
+    GLO_CROSSING = 6,
+    /// @brief a tl-logic
+    GLO_TLLOGIC = 7,
 
     /// @}
 
@@ -205,8 +205,17 @@ enum GUIGlObjectType {
     /// @brief Traffic Assignment Zones (TAZs)
     GLO_TAZ = 400,
 
-    /// @brief Dotted contour (used in NETEDIT)
-    GLO_DOTTEDCONTOUR = 1024,
+    /// @name other
+    /// @{
+
+    /// @brief text element (used in NETEDIT)
+    GLO_TEXTNAME = 1000,
+
+    /// @brief dotted contour front element (used in NETEDIT)
+    GLO_DOTTEDCONTOUR_FRONT = 1010,
+
+    /// @brief dotted contour inspected element (used in NETEDIT)
+    GLO_DOTTEDCONTOUR_INSPECTED = 1020,
 
     /// @brief temporal shape (used in NETEDIT)
     GLO_TEMPORALSHAPE = 1030,
@@ -216,6 +225,8 @@ enum GUIGlObjectType {
 
     /// @brief test element (used in NETEDIT)
     GLO_TESTELEMENT = 1050,
+
+    /// @}
 
     /// @brief empty max
     GLO_MAX = 2048

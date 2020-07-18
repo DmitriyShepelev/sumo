@@ -22,7 +22,6 @@
 #include "GNENetworkElement.h"
 
 #include <netbuild/NBEdge.h>
-#include <netedit/GNEMoveShape.h>
 #include <netedit/elements/GNECandidateElement.h>
 
 
@@ -45,7 +44,7 @@ class GNECrossing;
  *
  * @see MSEdge
  */
-class GNEEdge : public GNENetworkElement, public GNECandidateElement, protected GNEMoveShape {
+class GNEEdge : public GNENetworkElement, public GNECandidateElement {
 
     /// @brief Friend class
     friend class GNEChange_Lane;
@@ -113,7 +112,7 @@ public:
      */
     int getEdgeVertexIndex(Position pos, const bool snapToGrid) const;
 
-    /// @brief begin movement (used when user click over edge to start a movement, to avoid problems with problems with GL Tree)
+    /// @brief begin movement (used when user click over edge to start a movement, to avoid problems with GL Tree)
     void startEdgeGeometryMoving(const double shapeOffset, const bool invertOffset);
 
     /**@brief move shape
@@ -295,6 +294,9 @@ public:
     // @brief update vehicle geometries
     void updateVehicleStackLabels();
 
+    /// @brief draw edge geometry points (note: This function is called by GNELane::drawGL(...)
+    void drawEdgeGeometryPoints(const GUIVisualizationSettings& s, const GNELane *lane) const;
+
 protected:
     /// @brief the underlying NBEdge
     NBEdge* myNBEdge;
@@ -349,7 +351,7 @@ private:
         const std::vector<GNEDemandElement*>& getDemandElements() const;
     };
 
-    /// @brif flag to enable/disable update geomtetry of lanes (used mainly by setNumLanes)
+    /// @brif flag to enable/disable update geometry of lanes (used mainly by setNumLanes)
     bool myUpdateGeometry;
 
     /// @brief set attribute after validation
@@ -386,9 +388,6 @@ private:
 
     /// @brief get vehicles a that start over this edge
     const std::map<const GNELane*, std::vector<GNEDemandElement*> > getVehiclesOverEdgeMap() const;
-
-    /// @brief draw geometry points
-    void drawGeometryPoints(const GUIVisualizationSettings& s) const;
 
     /// @brief draw edge name
     void drawEdgeName(const GUIVisualizationSettings& s) const;

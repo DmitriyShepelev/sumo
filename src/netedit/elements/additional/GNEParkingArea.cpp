@@ -69,11 +69,8 @@ GNEParkingArea::updateGeometry() {
     // Get position of the sign
     mySignPos = tmpShape.getLineCenter();
 
-    // Set block icon position
-    myBlockIcon.position = myAdditionalGeometry.getShape().getLineCenter();
-
-    // Set block icon rotation, and using their rotation for sign
-    myBlockIcon.setRotation(getParentLanes().front());
+    // update block icon position
+    myBlockIcon.updatePositionAndRotation();
 
     // last step is to check if object has to be added into grid (SUMOTree) again
     if (!myMove.movingGeometryBoundary.isInitialised()) {
@@ -109,96 +106,55 @@ GNEParkingArea::drawGL(const GUIVisualizationSettings& s) const {
     const double parkingAreaExaggeration = s.addSize.getExaggeration(s, this);
     // first check if additional has to be drawn
     if (s.drawAdditionals(parkingAreaExaggeration) && myNet->getViewNet()->getDataViewOptions().showAdditionals()) {
-        // check if boundary has to be drawn
-        if (s.drawBoundaries) {
-            GLHelper::drawBoundary(getCenteringBoundary());
-        }
-        // Push name
-        glPushName(getGlID());
-        // Push base matrix
-        glPushMatrix();
-        // Traslate matrix
-        glTranslated(0, 0, getType());
-        // Set Color
-        if (drawUsingSelectColor()) {
-            GLHelper::setColor(s.colorSettings.selectedAdditionalColor);
+        // declare colors
+        RGBColor baseColor, signColor;
+        // set colors
+        if (mySpecialColor) {
+            baseColor = *mySpecialColor;
+            signColor = baseColor.changedBrightness(-32);
+        } else if (drawUsingSelectColor()) {
+            baseColor = s.colorSettings.selectedAdditionalColor;
+            signColor = baseColor.changedBrightness(-32);
         } else {
-            GLHelper::setColor(s.stoppingPlaceSettings.parkingAreaColor);
+            baseColor = s.stoppingPlaceSettings.parkingAreaColor;
+            signColor = s.stoppingPlaceSettings.parkingAreaColorSign;
         }
-        // Draw base
+        // Start drawing adding an gl identificator
+        glPushName(getGlID());
+        // Add a draw matrix
+        glPushMatrix();
+        // translate to front
+        myNet->getViewNet()->drawTranslateFrontAttributeCarrier(this, GLO_PARKING_AREA);
+        // set base color
+        GLHelper::setColor(baseColor);
+        // Draw the area using shape, shapeRotations, shapeLengths and value of exaggeration
         GNEGeometry::drawGeometry(myNet->getViewNet(), myAdditionalGeometry, myWidth * parkingAreaExaggeration);
-        // Check if the distance is enought to draw details and if is being drawn for selecting
-        if (s.drawForRectangleSelection) {
-            // only draw circle depending of distance between sign and mouse cursor
-            if (myNet->getViewNet()->getPositionInformation().distanceSquaredTo2D(mySignPos) <= (myCircleWidthSquared + 2)) {
-                // Add a draw matrix for details
-                glPushMatrix();
-                // Start drawing sign traslating matrix to signal position
-                glTranslated(mySignPos.x(), mySignPos.y(), 0);
-                // scale matrix depending of the exaggeration
-                glScaled(parkingAreaExaggeration, parkingAreaExaggeration, 1);
-                // set color
-                GLHelper::setColor(s.stoppingPlaceSettings.busStopColor);
-                // Draw circle
-                GLHelper::drawFilledCircle(myCircleWidth, s.getCircleResolution());
-                // pop draw matrix
-                glPopMatrix();
-            }
-        } else if (s.drawDetail(s.detailSettings.stoppingPlaceDetails, parkingAreaExaggeration)) {
-            // Push matrix for details
-            glPushMatrix();
-            // Set position over sign
-            glTranslated(mySignPos.x(), mySignPos.y(), 0);
-            // Scale matrix
-            glScaled(parkingAreaExaggeration, parkingAreaExaggeration, 1);
-            // Set base color
-            if (drawUsingSelectColor()) {
-                GLHelper::setColor(s.colorSettings.selectedAdditionalColor);
-            } else {
-                GLHelper::setColor(s.stoppingPlaceSettings.parkingAreaColor);
-            }
-            // Draw extern
-            GLHelper::drawFilledCircle(myCircleWidth, s.getCircleResolution());
-            // Move to top
-            glTranslated(0, 0, .1);
-            // Set sign color
-            if (drawUsingSelectColor()) {
-                GLHelper::setColor(s.colorSettings.selectionColor);
-            } else {
-                GLHelper::setColor(s.stoppingPlaceSettings.parkingAreaColorSign);
-            }
-            // Draw internt sign
-            GLHelper::drawFilledCircle(myCircleInWidth, s.getCircleResolution());
-            // Draw sign 'C'
-            if (s.drawDetail(s.detailSettings.stoppingPlaceText, parkingAreaExaggeration) && !s.drawForPositionSelection) {
-                if (drawUsingSelectColor()) {
-                    GLHelper::drawText("P", Position(), .1, myCircleInText, s.colorSettings.selectedAdditionalColor, myBlockIcon.rotation);
-                } else {
-                    GLHelper::drawText("P", Position(), .1, myCircleInText, s.stoppingPlaceSettings.parkingAreaColor, myBlockIcon.rotation);
-                }
-            }
-            // Pop sign matrix
-            glPopMatrix();
-            // Draw icon
+        // draw detail
+        if (s.drawDetail(s.detailSettings.stoppingPlaceDetails, parkingAreaExaggeration)) {
+            // draw sign
+            drawSign(s, parkingAreaExaggeration, baseColor, signColor, "H");
+            // draw lock icon
             myBlockIcon.drawIcon(s, parkingAreaExaggeration);
         }
-        // Pop base matrix
+        // pop draw matrix
         glPopMatrix();
         // Draw name if isn't being drawn for selecting
         drawName(getPositionInView(), s.scale, s.addName);
-        if (s.addFullName.show && (myAdditionalName != "") && !s.drawForRectangleSelection && !s.drawForPositionSelection) {
-            GLHelper::drawText(myAdditionalName, mySignPos, GLO_MAX - getType(), s.addFullName.scaledSize(s.scale), s.addFullName.color, myBlockIcon.rotation);
-        }
-        // check if dotted contour has to be drawn
-        if (s.drawDottedContour() || (myNet->getViewNet()->getInspectedAttributeCarrier() == this)) {
-            GNEGeometry::drawDottedContourShape(s, myAdditionalGeometry.getShape(), myWidth, parkingAreaExaggeration);
-        }
-        // Pop name matrix
+        // Pop name
         glPopName();
+        // draw additional name
+        drawAdditionalName(s);
+        // check if dotted contours has to be drawn
+        if (s.drawDottedContour() || myNet->getViewNet()->getInspectedAttributeCarrier() == this) {
+            GNEGeometry::drawDottedContourShape(true, s, myAdditionalGeometry.getShape(), myWidth, parkingAreaExaggeration);
+        }
+        if (s.drawDottedContour() || myNet->getViewNet()->getFrontAttributeCarrier() == this) {
+            GNEGeometry::drawDottedContourShape(false, s, myAdditionalGeometry.getShape(), myWidth, parkingAreaExaggeration);
+        }
         // draw child demand elements
-        for (const auto& i : getChildDemandElements()) {
-            if (!i->getTagProperty().isPlacedInRTree()) {
-                i->drawGL(s);
+        for (const auto& demandElement : getChildDemandElements()) {
+            if (!demandElement->getTagProperty().isPlacedInRTree()) {
+                demandElement->drawGL(s);
             }
         }
     }

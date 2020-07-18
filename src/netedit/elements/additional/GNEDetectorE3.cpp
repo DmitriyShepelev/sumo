@@ -51,14 +51,14 @@ GNEDetectorE3::~GNEDetectorE3() {}
 
 void
 GNEDetectorE3::updateGeometry() {
-    // Set block icon position
-    myBlockIcon.position = myPosition;
+    // update additional geometry
+    myAdditionalGeometry.updateGeometry(myPosition, 0);
+
+    // update block icon position
+    myBlockIcon.updatePositionAndRotation();
 
     // Set block icon offset
-    myBlockIcon.offset = Position(-0.5, -0.5);
-
-    // Set block icon rotation, and using their rotation for draw logo
-    myBlockIcon.setRotation();
+    myBlockIcon.setOffset(-0.5, -0.5);
 
     // Update connection's geometry
     myChildConnections.update();
@@ -130,42 +130,53 @@ GNEDetectorE3::drawGL(const GUIVisualizationSettings& s) const {
         }
         // Start drawing adding an gl identificator
         glPushName(getGlID());
-        // Add a draw matrix for drawing logo
+        // Add layer matrix
         glPushMatrix();
-        glTranslated(myPosition.x(), myPosition.y(), getType());
+        // translate to front
+        myNet->getViewNet()->drawTranslateFrontAttributeCarrier(this, GLO_E3DETECTOR);
+        // translate to position
+        glTranslated(myPosition.x(), myPosition.y(), 0);
         // scale
         glScaled(E3Exaggeration, E3Exaggeration, 1);
-        // Draw icon depending of detector is selected and if isn't being drawn for selecting
-        if (!s.drawForRectangleSelection && s.drawDetail(s.detailSettings.laneTextures, E3Exaggeration)) {
-            glColor3d(1, 1, 1);
-            glRotated(180, 0, 0, 1);
+        // set color
+        glColor3d(1, 1, 1);
+        // rotate
+        glRotated(180, 0, 0, 1);
+        // draw depending 
+        if (s.drawForRectangleSelection || !s.drawDetail(s.detailSettings.laneTextures, E3Exaggeration)) {
+            // set color
+            GLHelper::setColor(RGBColor::GREY);
+            // just draw a box
+            GLHelper::drawBoxLine(Position(0, s.detectorSettings.E3Size), 0, 2 * s.detectorSettings.E3Size, s.detectorSettings.E3Size);
+        } else {
+            // draw texture
             if (drawUsingSelectColor()) {
                 GUITexturesHelper::drawTexturedBox(GUITextureSubSys::getTexture(GNETEXTURE_E3SELECTED), s.detectorSettings.E3Size);
             } else {
                 GUITexturesHelper::drawTexturedBox(GUITextureSubSys::getTexture(GNETEXTURE_E3), s.detectorSettings.E3Size);
             }
-        } else {
-            GLHelper::setColor(RGBColor::GREY);
-            GLHelper::drawBoxLine(Position(0, s.detectorSettings.E3Size), 0, 2 * s.detectorSettings.E3Size, s.detectorSettings.E3Size);
+            // draw lock icon
+            myBlockIcon.drawIcon(s, E3Exaggeration, 0.4);
         }
-        // Pop logo matrix
+        // pop layer matrix
         glPopMatrix();
-        // Show Lock icon depending
-        myBlockIcon.drawIcon(s, E3Exaggeration, 0.4);
+        // Draw name if isn't being drawn for selecting
+        drawName(getPositionInView(), s.scale, s.addName);
+        // Pop name
+        glPopName();
+        // draw additional name
+        drawAdditionalName(s);
         // Draw child connections
         drawChildConnections(s, getType(), E3Exaggeration);
-        // Draw name if isn't being drawn for selecting
-        if (!s.drawForRectangleSelection) {
-            drawName(getPositionInView(), s.scale, s.addName);
-        }
-        // check if dotted contour has to be drawn
-        if (s.drawDottedContour() || (myNet->getViewNet()->getInspectedAttributeCarrier() == this)) {
-            GNEGeometry::drawDottedSquaredShape(s, myPosition, s.detectorSettings.E3Size, s.detectorSettings.E3Size, 0, E3Exaggeration);
+        // check if dotted contours has to be drawn
+        if (s.drawDottedContour() || myNet->getViewNet()->getInspectedAttributeCarrier() == this) {
+            GNEGeometry::drawDottedSquaredShape(true, s, myPosition, s.detectorSettings.E3Size, s.detectorSettings.E3Size, 0, E3Exaggeration);
             // draw shape dotte contour aroud alld connections between child and parents
             drawChildDottedConnections(s, E3Exaggeration);
         }
-        // Pop name
-        glPopName();
+        if (s.drawDottedContour() || myNet->getViewNet()->getFrontAttributeCarrier() == this) {
+            GNEGeometry::drawDottedSquaredShape(false, s, myPosition, s.detectorSettings.E3Size, s.detectorSettings.E3Size, 0, E3Exaggeration);
+        }
     }
 }
 

@@ -1,44 +1,61 @@
 ---
-title: JTRROUTER
-permalink: /JTRROUTER/
+title: duarouter
+permalink: /duarouter/
 ---
 
 # From 30.000 feet
 
-**JTRROUTER** computes routes that may be used by
-[SUMO](SUMO.md) based on traffic volumes and junction turning
-ratios.
+**duarouter** imports different demand definitions, computes vehicle
+routes that may be used by [sumo](sumo.md) using shortest path
+computation; When called iteratively **duarouter** performs [dynamic
+user assignment (DUA)](Demand/Dynamic_User_Assignment.md). This
+is facilitated by the tool
+[duaiterate.py](Tools/Assign.md#dua-iteratepy) which converges
+to an equilibrium state (DUE).
 
-- **Purpose:** Building vehicle routes from demand definitions using
-junction turning percentages
+- **Purpose:**
+
+  A) Building vehicle routes from demand definitions
+
+  B) Computing routes during a user assignment
+
+  C) Repairing connectivity problems in existing route files
+
 - **System:** portable (Linux/Windows is tested); runs on command line
-  - **Input (mandatory):**
 
-    A) a road network as generated via
-    [NETCONVERT](NETCONVERT.md) or
-    [NETGENERATE](NETGENERATE.md), see [Building
-    Networks](index.md#network_building)
+- **Input (mandatory):**
 
-    B) a demand definition, see [Demand
-    Modelling](index.md#demand_modelling)
+  A) a road network as generated via
+  [netconvert](netconvert.md) or
+  [netgenerate](netgenerate.md), see [Building
+  Networks](index.md#network_building)
 
-    C) Junction turning definitions
+  B) a demand definition, see [Demand
+  Modelling](index.md#demand_modelling)
 
 - **Output:** [Definition of Vehicles, Vehicle Types, and
-Routes](Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md)
-usable by [SUMO](SUMO.md)
+  Routes](Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md)
+  usable by [sumo](sumo.md)
 - **Programming Language:** C++
 
 # Usage Description
 
-JTRROUTER is made for [routing based on
-turn-ratios](Demand/Routing_by_Turn_Probabilities.md).
+## Outputs
+
+The primary output of duarouter is a *.rou.xml* file which has its name
+specified by the option **-o**). Additionally a *.rou.alt.xml* with the same
+name prefix as the *.rou.xml* file will be generated. This *route
+alternative* file holds a [routeDistribution for every
+vehicle](Definition_of_Vehicles,_Vehicle_Types,_and_Routes.md#route_and_vehicle_type_distributions).
+Such a *routeDistribution* is used during [dynamic user assignment
+(DUA)](Demand/Dynamic_User_Assignment.md) but can also be loaded
+directly into [sumo](sumo.md).
 
 ## Options
 
-You may use a XML schema definition file for setting up a JTRROUTER
+You may use a XML schema definition file for setting up a duarouter
 configuration:
-[jtrrouterConfiguration.xsd](http://sumo.dlr.de/xsd/jtrrouterConfiguration.xsd).
+[duarouterConfiguration.xsd](http://sumo.dlr.de/xsd/duarouterConfiguration.xsd).
 
 ### Configuration
 
@@ -61,10 +78,12 @@ Files](Basics/Using_the_Command_Line_Applications.md#configuration_files).
 |--------|-------------|
 | **-n** {{DT_FILE}}<br> **--net-file** {{DT_FILE}} | Use FILE as SUMO-network to route on |
 | **-d** {{DT_FILE}}<br> **--additional-files** {{DT_FILE}} | Read additional network data (districts, bus stops) from FILE(s) |
-| **-r** {{DT_FILE}}<br> **--route-files** {{DT_FILE}} | Read sumo routes, alternatives, flows, and trips from FILE(s) |
+| **-t** {{DT_FILE}}<br> **--route-files** {{DT_FILE}} | Read sumo routes, alternatives, flows, and trips from FILE(s) |
 | **--phemlight-path** {{DT_FILE}} | Determines where to load PHEMlight definitions from.; *default:* **./PHEMlight/** |
 | **--junction-taz** {{DT_BOOL}} | Initialize a TAZ for every junction to use attributes toJunction and fromJunction; *default:* **false** |
-| **-t** {{DT_FILE}}<br> **--turn-ratio-files** {{DT_FILE}} | Read turning ratios from FILE(s) |
+| **-w** {{DT_FILE}}<br> **--weight-files** {{DT_FILE}} | Read network weights from FILE(s) |
+| **--lane-weight-files** {{DT_FILE}} | Read lane-based network weights from FILE(s) |
+| **-x** {{DT_STR}}<br> **--weight-attribute** {{DT_STR}} | Name of the xml attribute which gives the edge weight; *default:* **traveltime** |
 
 ### Output
 
@@ -78,6 +97,12 @@ Files](Basics/Using_the_Command_Line_Applications.md#configuration_files).
 | **-o** {{DT_FILE}}<br> **--output-file** {{DT_FILE}} | Write generated routes to FILE |
 | **--vtype-output** {{DT_FILE}} | Write used vehicle types into separate FILE |
 | **--keep-vtype-distributions** {{DT_BOOL}} | Keep vTypeDistribution ids when writing vehicles and their types; *default:* **false** |
+| **--alternatives-output** {{DT_FILE}} | Write generated route alternatives to FILE |
+| **--intermodal-network-output** {{DT_FILE}} | Write edge splits and connectivity to FILE |
+| **--intermodal-weight-output** {{DT_FILE}} | Write intermodal edges with lengths and travel times to FILE |
+| **--write-trips** {{DT_BOOL}} | Write trips instead of vehicles (for validating trip input); *default:* **false** |
+| **--write-trips.geo** {{DT_BOOL}} | Write trips with geo-coordinates; *default:* **false** |
+| **--write-trips.junctions** {{DT_BOOL}} | Write trips with fromJunction and toJunction; *default:* **false** |
 | **--exit-times** {{DT_BOOL}} | Write exit times (weights) for each edge; *default:* **false** |
 
 ### Processing
@@ -101,14 +126,26 @@ Files](Basics/Using_the_Command_Line_Applications.md#configuration_files).
 | **--bulk-routing** {{DT_BOOL}} | Aggregate routing queries with the same origin; *default:* **false** |
 | **--routing-threads** {{DT_INT}} | The number of parallel execution threads used for routing; *default:* **0** |
 | **--restriction-params** {{DT_STR[]}} | Comma separated list of param keys to compare for additional restrictions |
-| **--max-edges-factor** {{DT_FLOAT}} | Routes are cut off when the route edges to net edges ratio is larger than FLOAT; *default:* **2** |
-| **-T** {{DT_STR[]}}<br> **--turn-defaults** {{DT_STR[]}} | Use STR[] as default turn definition; *default:* **30,50,20** |
-| **--sink-edges** {{DT_STR[]}} | Use STR[] as list of sink edges |
-| **-A** {{DT_BOOL}}<br> **--accept-all-destinations** {{DT_BOOL}} | Whether all edges are allowed as sink edges; *default:* **false** |
-| **-i** {{DT_BOOL}}<br> **--ignore-vclasses** {{DT_BOOL}} | Ignore road restrictions based on vehicle class; *default:* **false** |
-| **--allow-loops** {{DT_BOOL}} | Allow to re-use a road; *default:* **false** |
-| **-S** {{DT_BOOL}}<br> **--sources-are-sinks** {{DT_BOOL}} | Use all source edges as sink edges.; *default:* **false** |
-| **-D** {{DT_BOOL}}<br> **--discount-sources** {{DT_BOOL}} | Subtract upstream flow when inserting a new flow. When option --sources-are-sinks is set, the upstream flow is limited to the value of the source flow and the remainig part termines.; *default:* **false** |
+| **--weights.expand** {{DT_BOOL}} | Expand weights behind the simulation's end; *default:* **false** |
+| **--weights.random-factor** {{DT_FLOAT}} | Edge weights for routing are dynamically disturbed by a random factor drawn uniformly from [1,FLOAT); *default:* **1** |
+| **--routing-algorithm** {{DT_STR}} | Select among routing algorithms ['dijkstra', 'astar', 'CH', 'CHWrapper']; *default:* **dijkstra** |
+| **--weight-period** {{DT_TIME}} | Aggregation period for the given weight files; triggers rebuilding of Contraction Hierarchy; *default:* **3600** |
+| **--weights.priority-factor** {{DT_FLOAT}} | Consider edge priorities in addition to travel times, weighted by factor; *default:* **0** |
+| **--astar.all-distances** {{DT_FILE}} | Initialize lookup table for astar from the given file (generated by marouter --all-pairs-output) |
+| **--astar.landmark-distances** {{DT_FILE}} | Initialize lookup table for astar ALT-variant from the given file |
+| **--astar.save-landmark-distances** {{DT_FILE}} | Save lookup table for astar ALT-variant to the given file |
+| **--gawron.beta** {{DT_FLOAT}} | Use FLOAT as Gawron's beta; *default:* **0.3** |
+| **--gawron.a** {{DT_FLOAT}} | Use FLOAT as Gawron's a; *default:* **0.05** |
+| **--keep-all-routes** {{DT_BOOL}} | Save routes with near zero probability; *default:* **false** |
+| **--skip-new-routes** {{DT_BOOL}} | Only reuse routes from input, do not calculate new ones; *default:* **false** |
+| **--ptline-routing** {{DT_BOOL}} | Route all public transport input; *default:* **false** |
+| **--logit** {{DT_BOOL}} | Use c-logit model (deprecated in favor of --route-choice-method logit); *default:* **false** |
+| **--route-choice-method** {{DT_STR}} | Choose a route choice method: gawron, logit, or lohse; *default:* **gawron** |
+| **--logit.beta** {{DT_FLOAT}} | Use FLOAT as logit's beta; *default:* **-1** |
+| **--logit.gamma** {{DT_FLOAT}} | Use FLOAT as logit's gamma; *default:* **1** |
+| **--logit.theta** {{DT_FLOAT}} | Use FLOAT as logit's theta (negative values mean auto-estimation); *default:* **-1** |
+| **--persontrip.walkfactor** {{DT_FLOAT}} | Use FLOAT as a factor on pedestrian maximum speed during intermodal routing; *default:* **0.75** |
+| **--persontrip.transfer.car-walk** {{DT_STR[]}} | Where are mode changes from car to walking allowed (possible values: 'parkingAreas', 'ptStops', 'allJunctions', 'taxi' and combinations); *default:* **parkingAreas** |
 
 ### Defaults
 
@@ -164,3 +201,9 @@ Options](Basics/Using_the_Command_Line_Applications.md#random_number_options).
 |--------|-------------|
 | **--random** {{DT_BOOL}} | Initialises the random number generator with the current system time; *default:* **false** |
 | **--seed** {{DT_INT}} | Initialises the random number generator with the given value; *default:* **23423** |
+
+# Further Documentation
+
+- [Supported Routing Algorithms](Simulation/Routing.md#routing_algorithms)
+- [Demand/Shortest_or_Optimal_Path_Routing](Demand/Shortest_or_Optimal_Path_Routing.md)
+- [Demand/Dynamic_User_Assignment](Demand/Dynamic_User_Assignment.md)

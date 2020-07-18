@@ -177,10 +177,10 @@ public:
 
     /// @name Functions related with geometry of element
     /// @{
-    /// @brief begin movement (used when user click over additional to start a movement, to avoid problems with problems with GL Tree)
+    /// @brief begin movement (used when user click over additional to start a movement, to avoid problems with GL Tree)
     void startGeometryMoving();
 
-    /// @brief begin movement (used when user click over additional to start a movement, to avoid problems with problems with GL Tree)
+    /// @brief begin movement (used when user click over additional to start a movement, to avoid problems with GL Tree)
     void endGeometryMoving();
 
     /**@brief change the position of the element geometry without saving in undoList
@@ -341,25 +341,33 @@ protected:
         /// @brief constructor
         BlockIcon(GNEAdditional* additional);
 
-        /// @brief set Rotation of block Icon (must be called in updateGeometry() function)
-        void setRotation(GNELane* additionalLane = nullptr);
+        /// @brief update position and rotation using additional geometry
+        void updatePositionAndRotation();
+
+        /// @brief set offset
+        void setOffset(const double x, const double y);
 
         /// @brief draw lock icon
         void drawIcon(const GUIVisualizationSettings& s, const double exaggeration, const double size = 0.5) const;
 
-    public:
-        /// @brief position of the block icon
-        Position position;
+        /// @brief get position of the block icon
+        const Position &getPosition() const;
 
-        /// @brief The offSet of the block icon
-        Position offset;
-
-        /// @brief The rotation of the block icon
-        double rotation;
+        /// @brief get rotation of the block icon
+        double getRotation() const;
 
     private:
         /// @brief pointer to parent additional
-        GNEAdditional* myAdditional;
+        const GNEAdditional* myAdditional;
+
+        /// @brief position of the block icon
+        Position myPosition;
+
+        /// @brief The rotation of the block icon
+        double myRotation;
+
+        /// @brief The offSet of the block icon
+        Position myOffset;
 
         /// @brief Invalidated assignment operator
         BlockIcon& operator=(const BlockIcon& other) = delete;
@@ -399,6 +407,9 @@ protected:
     bool isValidDetectorID(const std::string& newID) const;
 
     /// @}
+
+    /// @brief draw additional name
+    void drawAdditionalName(const GUIVisualizationSettings& s) const;
 
 private:
     /**@brief check restriction with the number of children

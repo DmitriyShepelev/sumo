@@ -118,7 +118,7 @@ public:
     const GNEViewNetHelper::KeyPressed& getKeyPressed() const;
 
     /// @brief get Edit Shape modul
-    const GNEViewNetHelper::EditShapes& getEditShapes() const;
+    const GNEViewNetHelper::EditNetworkElementShapes& getEditNetworkElementShapes() const;
 
     /// @name overloaded handlers
     /// @{
@@ -374,11 +374,20 @@ public:
     /// @brief get interval bar
     GNEViewNetHelper::IntervalBar& getIntervalBar();
 
-    /// @brief get inspected AttributeCarrier
+    /// @brief get inspected attributeCarrier
     const GNEAttributeCarrier* getInspectedAttributeCarrier() const;
 
-    /// @brief set attributeCarrier under cursor
+    /// @brief set inspected attributeCarrier
     void setInspectedAttributeCarrier(const GNEAttributeCarrier* AC);
+
+    /// @brief get front attributeCarrier
+    const GNEAttributeCarrier* getFrontAttributeCarrier() const;
+
+    /// @brief set front attributeCarrier
+    void setFrontAttributeCarrier(const GNEAttributeCarrier* AC);
+
+    /// @brief draw front attributeCarrier
+    void drawTranslateFrontAttributeCarrier(const GNEAttributeCarrier* AC, GUIGlObjectType objectType, const double extraOffset = 0);
 
     /// @brief check if lock icon should be visible
     bool showLockIcon() const;
@@ -493,7 +502,7 @@ private:
     GNEViewNetHelper::SelectingArea mySelectingArea;
 
     /// @brief struct for grouping all variables related with edit shapes
-    GNEViewNetHelper::EditShapes myEditShapes;
+    GNEViewNetHelper::EditNetworkElementShapes myEditNetworkElementShapes;
 
     /// @brief view parent
     GNEViewParent* myViewParent;
@@ -507,8 +516,11 @@ private:
     /// @brief a reference to the undolist maintained in the application
     GNEUndoList* myUndoList;
 
-    /// @brief get inspected attribute carrier
+    /// @brief inspected attribute carrier
     const GNEAttributeCarrier* myInspectedAttributeCarrier;
+
+    /// @brief front attribute carrier
+    const GNEAttributeCarrier* myFrontAttributeCarrier;
 
     /// @brief create edit mode buttons and elements
     void buildEditModeControls();

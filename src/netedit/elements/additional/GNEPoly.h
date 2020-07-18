@@ -85,10 +85,10 @@ public:
 
     /// @name functions for edit geometry
     /// @{
-    /// @brief begin movement (used when user click over edge to start a movement, to avoid problems with problems with GL Tree)
+    /// @brief begin movement (used when user click over edge to start a movement, to avoid problems with GL Tree)
     void startPolyShapeGeometryMoving(const double shapeOffset);
 
-    /// @brief begin movement (used when user click over edge to start a movement, to avoid problems with problems with GL Tree)
+    /// @brief begin movement (used when user click over edge to start a movement, to avoid problems with GL Tree)
     void endPolyShapeGeometryMoving();
 
     /**@brief return index of geometry point placed in given position, or -1 if no exist
@@ -206,12 +206,6 @@ public:
     /// @brief check if polygon is closed
     bool isPolygonClosed() const;
 
-    /// @brief retrieve the networkElement of which the shape is being edited
-    void setShapeEditedElement(GNENetworkElement* element);
-
-    /// @brief retrieve the junction of which the shape is being edited
-    GNENetworkElement* getShapeEditedElement() const;
-
     /// @brief open polygon
     void openPolygon(bool allowUndo = true);
 
@@ -225,9 +219,6 @@ public:
     void simplifyShape(bool allowUndo = true);
 
 protected:
-    /// @brief junction of which the shape is being edited (optional)
-    GNENetworkElement* myNetworkElementShapeEdited;
-
     /// @brief Latitude of Polygon
     PositionVector myGeoShape;
 
@@ -241,9 +232,6 @@ protected:
     GNEGeometry::Geometry myPolygonGeometry;
 
 private:
-    /// @brief hint size of vertex
-    static const double myHintSize;
-
     /// @brief set attribute after validation
     void setAttribute(SumoXMLAttr key, const std::string& value);
 

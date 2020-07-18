@@ -54,14 +54,14 @@ GNERerouter::~GNERerouter() {
 
 void
 GNERerouter::updateGeometry() {
-    // Set block icon position
-    myBlockIcon.position = myPosition;
+    // update additional geometry
+    myAdditionalGeometry.updateGeometry(myPosition, 0);
+
+    // update block icon position
+    myBlockIcon.updatePositionAndRotation();
 
     // Set block icon offset
-    myBlockIcon.offset = Position(-0.5, -0.5);
-
-    // Set block icon rotation, and using their rotation for draw logo
-    myBlockIcon.setRotation();
+    myBlockIcon.setOffset(-0.5, -0.5);
 
     // update connection positions
     myChildConnections.update();
@@ -141,7 +141,10 @@ GNERerouter::drawGL(const GUIVisualizationSettings& s) const {
         glPushName(getGlID());
         // Add a draw matrix for drawing logo
         glPushMatrix();
-        glTranslated(myPosition.x(), myPosition.y(), getType());
+        // translate to front
+        myNet->getViewNet()->drawTranslateFrontAttributeCarrier(this, GLO_REROUTER);
+        // translate to position
+        glTranslated(myPosition.x(), myPosition.y(), 0);
         // scale
         glScaled(rerouterExaggeration, rerouterExaggeration, 1);
         // Draw icon depending of detector is selected and if isn't being drawn for selecting
@@ -165,7 +168,7 @@ GNERerouter::drawGL(const GUIVisualizationSettings& s) const {
         drawChildConnections(s, getType(), rerouterExaggeration);
         // check if dotted contour has to be drawn
         if (s.drawDottedContour() || (myNet->getViewNet()->getInspectedAttributeCarrier() == this)) {
-            GNEGeometry::drawDottedSquaredShape(s, myPosition, s.additionalSettings.rerouterSize, s.additionalSettings.rerouterSize, 0, rerouterExaggeration);
+            GNEGeometry::drawDottedSquaredShape(true, s, myPosition, s.additionalSettings.rerouterSize, s.additionalSettings.rerouterSize, 0, rerouterExaggeration);
             // draw shape dotte contour aroud alld connections between child and parents
             drawChildDottedConnections(s, rerouterExaggeration);
         }

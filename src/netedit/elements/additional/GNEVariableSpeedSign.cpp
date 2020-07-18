@@ -49,14 +49,14 @@ GNEVariableSpeedSign::~GNEVariableSpeedSign() {
 
 void
 GNEVariableSpeedSign::updateGeometry() {
-    // Set block icon position
-    myBlockIcon.position = myPosition;
+    // update additional geometry
+    myAdditionalGeometry.updateGeometry(myPosition, 0);
+
+    // update block icon position
+    myBlockIcon.updatePositionAndRotation();
 
     // Set block icon offset
-    myBlockIcon.offset = Position(-0.5, -0.5);
-
-    // Set block icon rotation, and using their rotation for draw logo
-    myBlockIcon.setRotation();
+    myBlockIcon.setOffset(-0.5, -0.5);
 
     // update child connections
     myChildConnections.update();
@@ -136,7 +136,10 @@ GNEVariableSpeedSign::drawGL(const GUIVisualizationSettings& s) const {
         glPushName(getGlID());
         // Add a draw matrix for drawing logo
         glPushMatrix();
-        glTranslated(myPosition.x(), myPosition.y(), getType());
+        // translate to front
+        myNet->getViewNet()->drawTranslateFrontAttributeCarrier(this, GLO_VSS);
+        // translate to position
+        glTranslated(myPosition.x(), myPosition.y(), 0);
         // scale
         glScaled(VSSExaggeration, VSSExaggeration, 1);
         // Draw icon depending of variable speed sign is or if isn't being drawn for selecting
@@ -164,7 +167,7 @@ GNEVariableSpeedSign::drawGL(const GUIVisualizationSettings& s) const {
         }
         // check if dotted contour has to be drawn
         if (s.drawDottedContour() || (myNet->getViewNet()->getInspectedAttributeCarrier() == this)) {
-            GNEGeometry::drawDottedSquaredShape(s, myPosition, s.additionalSettings.VSSSize, s.additionalSettings.VSSSize, 0, VSSExaggeration);
+            GNEGeometry::drawDottedSquaredShape(true, s, myPosition, s.additionalSettings.VSSSize, s.additionalSettings.VSSSize, 0, VSSExaggeration);
             // draw shape dotte contour aroud alld connections between child and parents
             drawChildDottedConnections(s, VSSExaggeration);
         }

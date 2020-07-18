@@ -64,14 +64,11 @@ GNERouteProbe::updateGeometry() {
     // update geometry
     myAdditionalGeometry.updateGeometry(firstLane, offset);
 
-    // Set block icon position
-    myBlockIcon.position = myAdditionalGeometry.getShape().getLineCenter();
+    // update block icon position
+    myBlockIcon.updatePositionAndRotation();
 
     // Set offset of the block icon
-    myBlockIcon.offset = Position(1.1, (-3.06) - myRelativePositionY);
-
-    // Set block icon rotation, and using their rotation for logo
-    myBlockIcon.setRotation(firstLane);
+    myBlockIcon.setOffset(1.1, (-3.06) - myRelativePositionY);
 }
 
 
@@ -138,7 +135,8 @@ GNERouteProbe::drawGL(const GUIVisualizationSettings& s) const {
         }
         // draw shape
         glPushMatrix();
-        glTranslated(0, 0, getType());
+        // translate to front
+        myNet->getViewNet()->drawTranslateFrontAttributeCarrier(this, GLO_ROUTEPROBE);
         glTranslated(myAdditionalGeometry.getPosition().x(), myAdditionalGeometry.getPosition().y(), 0);
         glRotated(myAdditionalGeometry.getRotation(), 0, 0, 1);
         glScaled(routeProbeExaggeration, routeProbeExaggeration, 1);
@@ -197,7 +195,7 @@ GNERouteProbe::drawGL(const GUIVisualizationSettings& s) const {
         glPopName();
         // check if dotted contour has to be drawn
         if (s.drawDottedContour() || (myNet->getViewNet()->getInspectedAttributeCarrier() == this)) {
-            GNEGeometry::drawDottedSquaredShape(s, myAdditionalGeometry.getPosition(), 1, 1, myAdditionalGeometry.getRotation(), routeProbeExaggeration);
+            GNEGeometry::drawDottedSquaredShape(true, s, myAdditionalGeometry.getPosition(), 1, 1, myAdditionalGeometry.getRotation(), routeProbeExaggeration);
         }
     }
 }

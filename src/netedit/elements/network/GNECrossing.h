@@ -62,6 +62,32 @@ public:
     Position getPositionInView() const;
     /// @}
 
+    /// @name functions for edit shape
+    /// @{
+    /// @brief begin movement (used when user click over edge to start a movement, to avoid problems with GL Tree)
+    void startCrossingShapeGeometryMoving(const double shapeOffset);
+
+    /// @brief begin movement (used when user click over edge to start a movement, to avoid problems with GL Tree)
+    void endCrossingShapeGeometryMoving();
+
+    /**@brief return index of geometry point placed in given position, or -1 if no exist
+    * @param pos position of new/existent vertex
+    * @param snapToGrid enable or disable snapToActiveGrid
+    * @return index of position vector
+    */
+    int getCrossingShapeVertexIndex(Position pos, const bool snapToGrid) const;
+
+    /**@brief move shape
+    * @param[in] offset the offset of movement
+    */
+    void moveCrossingShape(const Position& offset);
+
+    /**@brief commit geometry changes in the attributes of an element after use of changeShapeGeometry(...)
+    * @param[in] undoList The undoList on which to register changes
+    */
+    void commitCrossingShapeChange(GNEUndoList* undoList);
+    /// @}
+
     /// @brief get parent Junction
     GNEJunction* getParentJunction() const;
 
@@ -145,7 +171,7 @@ private:
     void setAttribute(SumoXMLAttr key, const std::string& value);
 
     /// @brief draw TLS Link Number
-    void drawTLSLinkNo(const GUIVisualizationSettings& s) const;
+    void drawTLSLinkNo(const GUIVisualizationSettings& s, const NBNode::Crossing* crossing) const;
 
     /// @brief Invalidated copy constructor.
     GNECrossing(const GNECrossing&) = delete;

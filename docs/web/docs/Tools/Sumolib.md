@@ -61,7 +61,7 @@ avgSpeed = edgeStats.median()
 ```
 
 !!! note
-    Attribute *speed* is optional in user-generated *.edg.xml* files but will always be included if that file was written by [NETCONVERT](../NETCONVERT.md) or [NETEDIT](../NETEDIT.md).
+    Attribute *speed* is optional in user-generated *.edg.xml* files but will always be included if that file was written by [netconvert](../netconvert.md) or [netedit](../netedit.md).
 
 ## locate nearby edges based on the geo-coordinate
 This requires the module [pyproj](https://code.google.com/p/pyproj/) to be installed.
@@ -70,7 +70,7 @@ For larger networks [rtree](https://pypi.org/project/Rtree/) is also stron
 ```
 net = sumolib.net.readNet('myNet.net.xml')
 radius = 0.1
-x, y = net.convertLonLatXY(lon, lat)
+x, y = net.convertLonLat2XY(lon, lat)
 edges = net.getNeighboringEdges(x, y, radius)
 # pick the closest edge
 if len(edges) > 0:
@@ -108,8 +108,10 @@ x, y = net.convertLonLat2XY(lon, lat, True)
 lon, lat = net.convertXY2LonLat(x, y, True)
 
 # lane/offset coordinates
+# from lane position to network coordinates
 x,y = sumolib.geomhelper.positionAtShapeOffset(net.getLane(laneID).getShape(), lanePos)
-lane = net.getNeighboringLanes .... (see above)
+# from network coordinates to lane position
+lane = net.getNeighboringLanes(x, y, radius) (see "locate nearby edges based on the geo-coordinate" above)
 lanePos, dist = sumolib.geomhelper.polygonOffsetAndDistanceToPoint((x,y), lane.getShape())
 ```
 
@@ -119,4 +121,4 @@ see also
 # Further Examples
 
 The *runner.py* files in the test subfolders of [{{SUMO}}/tests/tools/sumolib]({{Source}}tests/tools/sumolib) provide additional
-examplse for sumolib use.
+examples for sumolib use.
